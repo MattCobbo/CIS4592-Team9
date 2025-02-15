@@ -29,6 +29,9 @@ ALLOWED_HOSTS = []
 
 AUTH_USER_MODEL = "base.MyUser"
 
+SIMPLE_JWT = {
+    "USER_ID_FIELD": "username",
+}
 
 # Application definition
 
@@ -41,8 +44,15 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "corsheaders",
+    "rest_framework_simplejwt",
     "base",
 ]
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        'base.authenticate.CookiesAuthentication',
+    )
+}
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
