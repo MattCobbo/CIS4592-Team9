@@ -14,7 +14,7 @@ const Navbar = () => {
     return (
         <Flex w='100vw' h='90px' bg='yellow.600' justifyContent='center' alignItems='center'>
             <HStack w='90%' justifyContent='space-between' color='white'>
-                <Text fontSize='24px' fontWeight='bold'>ArtCade</Text>
+                <Text fontSize='24px' fontWeight='bold'>LFG</Text>
                 <HStack>
                     <Text onClick={(route) => handleNavigate('admin')}><IoPersonOutline size='22px' /></Text>
                 </HStack>
