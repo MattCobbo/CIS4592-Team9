@@ -8,6 +8,10 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .models import MyUser
 from .serializers import MyUserProfileSerializer, UserRegisterSerializer
 
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def authenticated(request):
+    return Response('authenticated')
 
 @api_view(["POST"])
 def register(request):
