@@ -8,10 +8,12 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .models import MyUser
 from .serializers import MyUserProfileSerializer, UserRegisterSerializer
 
+
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def authenticated(request):
-    return Response('authenticated')
+    return Response("authenticated")
+
 
 @api_view(["POST"])
 def register(request):
@@ -104,6 +106,38 @@ def get_user_profile_data(request, pk):
             return Response({"error": "user does not exit"})
 
         serializer = MyUserProfileSerializer(user, many=False)
-        return Response(serializer.data)
+
+        following = False
+
+        if request.user in user.followers.all():
+            following = True
+
+        return Response(
+            {
+                **serializer.data,
+                "is_owner": request.user.username == user.username,
+                "following": following,
+            }
+        )
     except:
         return Response({"error": "error getting user data"})
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def toggleFollow(request):
+    try:
+        try:
+            my_user = MyUser.objects.get(username=request.user.username)
+            user_to_follow = MyUser.objects.get(username=request.data['username'])
+        except MyUser.DoesNotExist:
+            return Response({"error": "user does not exit"})
+        
+        if my_user in user_to_follow.followers.all():
+            user_to_follow.followers.remove(my_user)
+            return Response({'following':False})
+        else:
+            user_to_follow.followers.add(my_user)
+            return Response({'following':True})
+        
+    except:
+        return Response({'error':'error following user'})
