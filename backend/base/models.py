@@ -1,3 +1,6 @@
+## When adding new Model, must run $ py manage.py makemigrations
+ #                                 $ py manage.py migrate
+
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
@@ -9,3 +12,10 @@ class MyUser(AbstractUser):
 
     def __str__(self):
         return self.username
+    
+    
+class Post(models.Model):
+    user = models.ForeignKey(MyUser, on_delete=models.CASCADE, related_name='posts')
+    description = models.CharField(max_length=800)
+    created_at = models.DateField(auto_now_add=True)
+    likes = models.ManyToManyField(MyUser, related_name='post_likes', blank=True)

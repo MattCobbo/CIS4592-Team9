@@ -58,3 +58,8 @@ export const toggleFollow = async (username) => {
     const response = await api.post('/toggle_follow/', { username:username});
     return response.data
 }
+
+export const get_users_posts = async (username) => {
+    const response = await api.get(`/posts/${username}/`);
+    return response.data
+}

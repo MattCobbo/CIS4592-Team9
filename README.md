@@ -6,3 +6,7 @@ Initialize and launch (venv) then install required packages on the venv to test 
 
 # DRF Admin Panel
 Use admin credentials - (Username:admin, Password:admin)
+Initial login  ::   /api/token/
+View user data ::   /api/user_data/<username>/
+View posts     ::   /api/posts/<username>/
+

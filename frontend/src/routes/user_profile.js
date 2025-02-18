@@ -1,7 +1,8 @@
 import { Flex, Text, VStack, Box, Heading, HStack, Image, Button, Spacer } from "@chakra-ui/react"
 import { useEffect, useState } from "react";
-import { get_user_profile_data, toggleFollow } from "../api/endpoints";
+import { get_user_profile_data, toggleFollow, get_users_posts } from "../api/endpoints";
 import { SERVER_URL } from "../constants/constants";
+import Post from "../components/post";
 
 const UserProfile = () => {
 
@@ -21,6 +22,9 @@ const UserProfile = () => {
             <VStack w='75%'>
                 <Box w='100%' mt='40px'>
                     <UserDetails username={username} />
+                </Box>
+                <Box w='100%' mt='40px'>
+                    <UserPosts username={username} />
                 </Box>
             </VStack>
         </Flex>
@@ -97,6 +101,39 @@ const UserDetails = ({ username }) => {
             </HStack>
             <Text fontSize='18px'>{loading ? '-' : bio}</Text>
         </VStack>
+    )
+}
+
+
+const UserPosts = ({username}) => {
+
+    const [posts, setPosts] = useState([])
+    const [loading, setLoading] = useState(true)
+
+    useEffect(() => {
+        const fetchPosts = async () => {
+            try{
+                const posts = await get_users_posts(username)
+                setPosts(posts)
+            } catch {
+                alert('error getting posts')
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        fetchPosts()
+    }, [])
+
+    return (
+        <Flex>
+            {
+                loading ? <Text>Loading...</Text>
+                : posts.map((post) => {
+                    return <Post key={post.id} username={post.username} description={post.description} formatted_date={post.formatted_date} likes={post.likes} like_count={post.like_count} />
+                })
+            }
+        </Flex>
     )
 }
 
