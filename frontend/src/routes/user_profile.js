@@ -126,11 +126,11 @@ const UserPosts = ({username}) => {
     }, [])
 
     return (
-        <Flex>
+        <Flex direction={'column'} gap={'30px'} pb={'60px'}>
             {
                 loading ? <Text>Loading...</Text>
                 : posts.map((post) => {
-                    return <Post key={post.id} username={post.username} description={post.description} formatted_date={post.formatted_date} likes={post.likes} like_count={post.like_count} />
+                    return <Post key={post.id} id={post.id} username={post.username} description={post.description} formatted_date={post.formatted_date} liked={post.liked} like_count={post.like_count} />
                 })
             }
         </Flex>
