@@ -1,7 +1,9 @@
 import { Flex, Text, VStack, Box, Heading, HStack, Image, Button, Spacer } from "@chakra-ui/react"
 import { useEffect, useState } from "react";
-import { get_user_profile_data, toggleFollow, get_users_posts } from "../api/endpoints";
+import { useNavigate } from 'react-router-dom';
+import { get_user_profile_data, toggleFollow, get_users_posts, create_post } from "../api/endpoints";
 import { SERVER_URL } from "../constants/constants";
+
 import Post from "../components/post";
 
 const UserProfile = () => {
@@ -22,6 +24,9 @@ const UserProfile = () => {
             <VStack w='75%'>
                 <Box w='100%' mt='40px'>
                     <UserDetails username={username} />
+                </Box>
+                <Box w='100%' mt='40px'>
+                    <CreatePost username={username}></CreatePost>
                 </Box>
                 <Box w='100%' mt='40px'>
                     <UserPosts username={username} />
@@ -102,6 +107,68 @@ const UserDetails = ({ username }) => {
             <Text fontSize='18px'>{loading ? '-' : bio}</Text>
         </VStack>
     )
+}
+
+
+const CreatePost = ({username}) => {
+
+    const [loading, setLoading] = useState(true);
+    const [isOwner, setIsOwner] = useState(false);
+    const [newPostContent, setNewPostContent] = useState('');
+    const [showInput, setShowInput] = useState(false);
+
+    const handleInputChange = (event) => {
+        setNewPostContent(event.target.value);
+    };
+
+    const handleSubmit = async () => {
+        try {
+            await create_post(newPostContent)
+        } catch {
+            alert('error creating post')
+        }
+    };
+
+    useEffect(() => {
+
+        const fetchData = async () => {
+            try {
+                const data = await get_user_profile_data(username);
+
+                setIsOwner(data.is_owner)
+            } catch {
+                console.log('error')
+            } finally {
+                setLoading(false)
+            }
+        }
+        fetchData()
+
+    }, [])
+
+    return (
+        <div>
+        {
+            loading ? <Spacer /> :
+                isOwner ? <div>
+                    <Button backgroundColor={'blue.100'} color={'blue'} onClick={() => setShowInput(!showInput)}>
+                    {showInput ? 'Close Input' : '+ Create Post'}
+                    </Button>
+                    {showInput && (
+                        <form onSubmit={handleSubmit}>
+                        <input
+                            type="text"
+                            value={newPostContent}
+                            onChange={handleInputChange}
+                            placeholder="Enter your post"
+                        />
+                        <Button type="submit">Submit</Button>
+                        </form>
+                    )}
+                </div> : <Spacer/>
+        }
+        </div>
+    );
 }
 
 
