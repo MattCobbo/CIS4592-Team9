@@ -16,6 +16,7 @@ const Navbar = () => {
             <HStack w='90%' justifyContent='space-between' color='white'>
                 <Text fontSize='24px' fontWeight='bold'>LFG</Text>
                 <HStack gap={'20px'}>
+                    <Text onClick={(route) => handleNavigate('about')}>About.us</Text>
                     <Text onClick={(route) => handleNavigate('')}><IoHomeOutline size='22px' /></Text>
                     <Text onClick={(route) => handleNavigate('admin')}><IoPersonOutline size='22px' /></Text>
                 </HStack>
