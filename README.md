@@ -28,5 +28,5 @@ These dependencies are required for the backend virtual environment
 - pip install Pillow
 
 # Testing
-After cd into the backend you will run the "python manage.py test" 
+Run the "cd .\backend\" command into the backend and then run the "python manage.py test" 
 command which will run automated tests of the backend.
