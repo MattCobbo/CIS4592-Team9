@@ -26,3 +26,7 @@ These dependencies are required for the backend virtual environment
 - pip install django-cors-headers
 - pip install djangorestframework-simplejwt
 - pip install Pillow
+
+# Testing
+After cd into the backend you will run the "python manage.py test" 
+command which will run automated tests of the backend.
