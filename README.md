@@ -1,6 +1,9 @@
 # CIS4592-Team9
 Social Networking platform - Capstone Repository for Team 9
 
+# Sprint 1 Deliverables
+- Recording link :: https://drive.google.com/file/d/1O2qNpncajDCRrgOBnyT5yo2_NCzgiNlG/view?usp=sharing
+
 # Dev Build - Backend DRF - MUST USE Django Virtual Environment
 - Initialize virtual environment first in outer folder using ${pip -m venv venv}
 - then launch virtual environment ${.\venv\Scripts\activate}
