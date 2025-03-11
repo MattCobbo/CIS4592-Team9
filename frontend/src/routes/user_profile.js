@@ -6,6 +6,9 @@ import { SERVER_URL } from "../constants/constants";
 
 import Post from "../components/post";
 
+// Discord Integration
+import axios from "axios";
+
 const UserProfile = () => {
 
     const get_username_from_url = () => {
@@ -47,6 +50,10 @@ const UserDetails = ({ username }) => {
     const [isOwner, setIsOwner] = useState(false)
     const [following, setFollowing] = useState(false)
 
+    // Discord Integration
+    const [discordUsername, setDiscordUsername] = useState(null);
+    const [discordAvatar, setDiscordAvatar] = useState(null);
+
     const handleToggleFollow = async () => {
         const data = await toggleFollow(username);
         if (data.following) {
@@ -58,27 +65,39 @@ const UserDetails = ({ username }) => {
         }
     }
 
+    // redirect discord login
+    const handleDiscordLogin = () => {
+        window.location.href = `${SERVER_URL}/auth/discord/`;
+    }
+    ////////////////////////
     useEffect(() => {
-
         const fetchData = async () => {
             try {
                 const data = await get_user_profile_data(username);
-                setBio(data.bio)
-                setProfileImage(data.profile_image)
-                setFollowerCount(data.follower_count)
-                setFollowingCount(data.following_count)
-
-                setIsOwner(data.is_owner)
-                setFollowing(data.following)
+                setBio(data.bio);
+                setProfileImage(data.profile_image);
+                setFollowerCount(data.follower_count);
+                setFollowingCount(data.following_count);
+                setIsOwner(data.is_owner);
+                setFollowing(data.following);
             } catch {
-                console.log('error')
+                console.log('Error fetching profile data');
+            }
+
+            // Fetch Discord profile data
+            try {
+                const discordResponse = await axios.get(`${SERVER_URL}/auth/discord/profile/${username}/`);
+                setDiscordUsername(discordResponse.data.username);
+                setDiscordAvatar(discordResponse.data.avatar);
+            } catch {
+                console.log('No Discord account linked.');
             } finally {
-                setLoading(false)
+                setLoading(false);
             }
         }
-        fetchData()
 
-    }, [])
+        fetchData();
+    }, []);
 
     return (
         <VStack alignItems='start' w='100%' gap='40px'>
@@ -105,12 +124,26 @@ const UserDetails = ({ username }) => {
                 </VStack>
             </HStack>
             <Text fontSize='18px'>{loading ? '-' : bio}</Text>
+
+            { /* Discord Integration*/}
+            <HStack>
+                {discordUsername ? (
+                    <HStack>
+                        <Image src={discordAvatar} boxSize="40px" borderRadius="full" />
+                        <Text>Discord: {discordUsername}</Text>
+                    </HStack>
+                ) : (
+                    <Button onClick={handleDiscordLogin} colorScheme="purple">
+                        Link Discord
+                    </Button>
+                )}
+            </HStack>
         </VStack>
     )
 }
 
 
-const CreatePost = ({username}) => {
+const CreatePost = ({ username }) => {
 
     const [loading, setLoading] = useState(true);
     const [isOwner, setIsOwner] = useState(false);
@@ -148,38 +181,38 @@ const CreatePost = ({username}) => {
 
     return (
         <div>
-        {
-            loading ? <Spacer /> :
-                isOwner ? <div>
-                    <Button backgroundColor={'blue.100'} color={'blue'} onClick={() => setShowInput(!showInput)}>
-                    {showInput ? 'Close Input' : '+ Create Post'}
-                    </Button>
-                    {showInput && (
-                        <form onSubmit={handleSubmit}>
-                        <input
-                            type="text"
-                            value={newPostContent}
-                            onChange={handleInputChange}
-                            placeholder="Enter your post"
-                        />
-                        <Button type="submit">Submit</Button>
-                        </form>
-                    )}
-                </div> : <Spacer/>
-        }
+            {
+                loading ? <Spacer /> :
+                    isOwner ? <div>
+                        <Button backgroundColor={'blue.100'} color={'blue'} onClick={() => setShowInput(!showInput)}>
+                            {showInput ? 'Close Input' : '+ Create Post'}
+                        </Button>
+                        {showInput && (
+                            <form onSubmit={handleSubmit}>
+                                <input
+                                    type="text"
+                                    value={newPostContent}
+                                    onChange={handleInputChange}
+                                    placeholder="Enter your post"
+                                />
+                                <Button type="submit">Submit</Button>
+                            </form>
+                        )}
+                    </div> : <Spacer />
+            }
         </div>
     );
 }
 
 
-const UserPosts = ({username}) => {
+const UserPosts = ({ username }) => {
 
     const [posts, setPosts] = useState([])
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
         const fetchPosts = async () => {
-            try{
+            try {
                 const posts = await get_users_posts(username)
                 setPosts(posts)
             } catch {
@@ -196,9 +229,9 @@ const UserPosts = ({username}) => {
         <Flex direction={'column'} gap={'30px'} pb={'60px'}>
             {
                 loading ? <Text>Loading...</Text>
-                : posts.map((post) => {
-                    return <Post key={post.id} id={post.id} username={post.username} description={post.description} formatted_date={post.formatted_date} liked={post.liked} like_count={post.like_count} />
-                })
+                    : posts.map((post) => {
+                        return <Post key={post.id} id={post.id} username={post.username} description={post.description} formatted_date={post.formatted_date} liked={post.liked} like_count={post.like_count} />
+                    })
             }
         </Flex>
     )

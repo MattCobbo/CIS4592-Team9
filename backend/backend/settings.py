@@ -9,7 +9,6 @@ https://docs.djangoproject.com/en/5.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
-
 import os
 from pathlib import Path
 
@@ -144,3 +143,15 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Discord OAuth2 
+DISCORD_CLIENT_ID = "1348833058094317578"
+DISCORD_CLIENT_SECRET = "HhGFG5jGdZ60J-ocNjGcyA5FpAtkL0B5"
+DISCORD_REDIRECT_URI = "http://localhost:8000/auth/discord/callback/"
+DISCORD_API_BASE_URL = "https://discord.com/api"
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",  # Allow frontend requests
+]
+CORS_ALLOW_CREDENTIALS = True
+
