@@ -78,3 +78,8 @@ export const get_posts = async (num) => {
     const response = await api.get(`/get_posts/?page=${num}`)
     return response.data
 }
+
+export const search_users = async (search) => {
+    const response = await api.get(`/search/?query=${search}`, {timeout: 3000})
+    return response.data
+}
