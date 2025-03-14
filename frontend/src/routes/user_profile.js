@@ -6,6 +6,10 @@ import { SERVER_URL } from "../constants/constants";
 
 import Post from "../components/post";
 
+// Discord
+import WidgetBot from '@widgetbot/react-embed';
+
+
 const UserProfile = () => {
 
     const get_username_from_url = () => {
@@ -31,6 +35,19 @@ const UserProfile = () => {
                 <Box w='100%' mt='40px'>
                     <UserPosts username={username} />
                 </Box>
+                {/*
+Discord
+*/}
+
+                <Box w='100%' mt='40px'>
+                    <WidgetBot
+                        server="299881420891881473"
+                        channel="355719584830980096"
+                        width="100%"   // Optional: adjust width
+                        height="600"   // Optional: adjust height
+                    />
+                </Box>
+
             </VStack>
         </Flex>
     )
@@ -110,7 +127,7 @@ const UserDetails = ({ username }) => {
 }
 
 
-const CreatePost = ({username}) => {
+const CreatePost = ({ username }) => {
 
     const [loading, setLoading] = useState(true);
     const [isOwner, setIsOwner] = useState(false);
@@ -148,38 +165,38 @@ const CreatePost = ({username}) => {
 
     return (
         <div>
-        {
-            loading ? <Spacer /> :
-                isOwner ? <div>
-                    <Button backgroundColor={'blue.100'} color={'blue'} onClick={() => setShowInput(!showInput)}>
-                    {showInput ? 'Close Input' : '+ Create Post'}
-                    </Button>
-                    {showInput && (
-                        <form onSubmit={handleSubmit}>
-                        <input
-                            type="text"
-                            value={newPostContent}
-                            onChange={handleInputChange}
-                            placeholder="Enter your post"
-                        />
-                        <Button type="submit">Submit</Button>
-                        </form>
-                    )}
-                </div> : <Spacer/>
-        }
+            {
+                loading ? <Spacer /> :
+                    isOwner ? <div>
+                        <Button backgroundColor={'blue.100'} color={'blue'} onClick={() => setShowInput(!showInput)}>
+                            {showInput ? 'Close Input' : '+ Create Post'}
+                        </Button>
+                        {showInput && (
+                            <form onSubmit={handleSubmit}>
+                                <input
+                                    type="text"
+                                    value={newPostContent}
+                                    onChange={handleInputChange}
+                                    placeholder="Enter your post"
+                                />
+                                <Button type="submit">Submit</Button>
+                            </form>
+                        )}
+                    </div> : <Spacer />
+            }
         </div>
     );
 }
 
 
-const UserPosts = ({username}) => {
+const UserPosts = ({ username }) => {
 
     const [posts, setPosts] = useState([])
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
         const fetchPosts = async () => {
-            try{
+            try {
                 const posts = await get_users_posts(username)
                 setPosts(posts)
             } catch {
@@ -196,9 +213,9 @@ const UserPosts = ({username}) => {
         <Flex direction={'column'} gap={'30px'} pb={'60px'}>
             {
                 loading ? <Text>Loading...</Text>
-                : posts.map((post) => {
-                    return <Post key={post.id} id={post.id} username={post.username} description={post.description} formatted_date={post.formatted_date} liked={post.liked} like_count={post.like_count} />
-                })
+                    : posts.map((post) => {
+                        return <Post key={post.id} id={post.id} username={post.username} description={post.description} formatted_date={post.formatted_date} liked={post.liked} like_count={post.like_count} />
+                    })
             }
         </Flex>
     )
