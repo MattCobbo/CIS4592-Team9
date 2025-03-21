@@ -14,6 +14,12 @@ const Navbar = () => {
         nav(`/${route}`);
     }
 
+    const handleNavigateUser = () => {
+        const username = JSON.parse(localStorage.getItem('userData'))['username']
+        nav(`/${username}`)
+        window.location.reload()
+    }
+
     return (
         <Flex w='100vw' h='90px' bg='yellow.600' justifyContent='center' alignItems='center'>
             <HStack w='90%' justifyContent='space-between' color='white'>
@@ -37,7 +43,7 @@ const Navbar = () => {
                     </InputGroup>
                     <Text onClick={(route) => handleNavigate('about')}>About.us</Text>
                     <Text onClick={(route) => handleNavigate('')}><IoHomeOutline size='22px' /></Text>
-                    <Text onClick={(route) => handleNavigate('admin')}><IoPersonOutline size='22px' /></Text>
+                    <Text onClick={handleNavigateUser}><IoPersonOutline size='22px' /></Text>
                 </HStack>
             </HStack>
         </Flex>

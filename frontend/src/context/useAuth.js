@@ -25,6 +25,7 @@ export const AuthProvider = ({children}) => {
         const data = await login(username,password)
         if (data.success) {
             setAuth(true)
+            localStorage.setItem('userData', JSON.stringify({'username':username}))
             navigate(`/${username}`)
         } else {
             alert('invalid username or password')
