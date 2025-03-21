@@ -47,6 +47,12 @@ const UserDetails = ({ username }) => {
     const [isOwner, setIsOwner] = useState(false)
     const [following, setFollowing] = useState(false)
 
+    const nav = useNavigate();
+
+    const handleNavigate = (route) => {
+        nav(`/${route}`);
+    }
+
     const handleToggleFollow = async () => {
         const data = await toggleFollow(username);
         if (data.following) {
@@ -100,7 +106,7 @@ const UserDetails = ({ username }) => {
                     </HStack>
                     {
                         loading ? <Spacer /> :
-                            isOwner ? <Button w='100%'>Edit Profile</Button> : <Button onClick={handleToggleFollow} w='100%' colorScheme="blue">{following ? 'Unfollow' : 'Follow'}</Button>
+                            isOwner ? <Button onClick={(route) => handleNavigate('settings')} w='100%'>Edit Profile</Button> : <Button onClick={handleToggleFollow} w='100%' colorScheme="blue">{following ? 'Unfollow' : 'Follow'}</Button>
                     }
                 </VStack>
             </HStack>
@@ -110,7 +116,7 @@ const UserDetails = ({ username }) => {
 }
 
 
-const CreatePost = ({username}) => {
+const CreatePost = ({ username }) => {
 
     const [loading, setLoading] = useState(true);
     const [isOwner, setIsOwner] = useState(false);
@@ -148,38 +154,38 @@ const CreatePost = ({username}) => {
 
     return (
         <div>
-        {
-            loading ? <Spacer /> :
-                isOwner ? <div>
-                    <Button backgroundColor={'blue.100'} color={'blue'} onClick={() => setShowInput(!showInput)}>
-                    {showInput ? 'Close Input' : '+ Create Post'}
-                    </Button>
-                    {showInput && (
-                        <form onSubmit={handleSubmit}>
-                        <input
-                            type="text"
-                            value={newPostContent}
-                            onChange={handleInputChange}
-                            placeholder="Enter your post"
-                        />
-                        <Button type="submit">Submit</Button>
-                        </form>
-                    )}
-                </div> : <Spacer/>
-        }
+            {
+                loading ? <Spacer /> :
+                    isOwner ? <div>
+                        <Button backgroundColor={'blue.100'} color={'blue'} onClick={() => setShowInput(!showInput)}>
+                            {showInput ? 'Close Input' : '+ Create Post'}
+                        </Button>
+                        {showInput && (
+                            <form onSubmit={handleSubmit}>
+                                <input
+                                    type="text"
+                                    value={newPostContent}
+                                    onChange={handleInputChange}
+                                    placeholder="Enter your post"
+                                />
+                                <Button type="submit">Submit</Button>
+                            </form>
+                        )}
+                    </div> : <Spacer />
+            }
         </div>
     );
 }
 
 
-const UserPosts = ({username}) => {
+const UserPosts = ({ username }) => {
 
     const [posts, setPosts] = useState([])
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
         const fetchPosts = async () => {
-            try{
+            try {
                 const posts = await get_users_posts(username)
                 setPosts(posts)
             } catch {
@@ -196,9 +202,9 @@ const UserPosts = ({username}) => {
         <Flex direction={'column'} gap={'30px'} pb={'60px'}>
             {
                 loading ? <Text>Loading...</Text>
-                : posts.map((post) => {
-                    return <Post key={post.id} id={post.id} username={post.username} description={post.description} formatted_date={post.formatted_date} liked={post.liked} like_count={post.like_count} />
-                })
+                    : posts.map((post) => {
+                        return <Post key={post.id} id={post.id} username={post.username} description={post.description} formatted_date={post.formatted_date} liked={post.liked} like_count={post.like_count} />
+                    })
             }
         </Flex>
     )

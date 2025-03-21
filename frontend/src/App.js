@@ -12,6 +12,7 @@ import Register from './routes/register';
 import Home from './routes/home';
 import About from './routes/about';
 import Search from './routes/search';
+import Settings from './routes/settings';
 
 import { AuthProvider } from './context/useAuth';
 
@@ -25,6 +26,7 @@ function App() {
             <Route element={<Layout><PrivateRoute><Home/></PrivateRoute></Layout>} path='/' />
             <Route element={<Layout><PrivateRoute><Search/></PrivateRoute></Layout>} path='/search/:searchValue' />
             <Route element={<Layout><PrivateRoute><About/></PrivateRoute></Layout>} path='/about' />
+            <Route element={<Layout><PrivateRoute><Settings/></PrivateRoute></Layout>} path='/settings' />
             <Route element={<Layout><Login/></Layout>} path='/login' />
             <Route element={<Layout><Register/></Layout>} path='/register' />
           </Routes>

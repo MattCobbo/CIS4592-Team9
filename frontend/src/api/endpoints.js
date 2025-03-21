@@ -83,3 +83,13 @@ export const search_users = async (search) => {
     const response = await api.get(`/search/?query=${search}`, {timeout: 3000})
     return response.data
 }
+
+export const logout = async () => {
+    const response = await api.post('/logout/')
+    return response.data
+}
+
+export const update_user = async (values) => {
+    const response = await api.patch('/update_user/', values, {headers: {'Content-Type': 'multipart/form-data'}})
+    return response.data
+}
