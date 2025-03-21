@@ -35,7 +35,7 @@ const Home = () => {
     return (
         <Flex w='100%' justifyContent='center' pt='50px'>
             <VStack alignItems='start' gap='30px' pb='50px'>
-                <Heading>Posts</Heading>
+                <Heading>Main Feed</Heading>
                 {
                     loading ?
                         <Text>Loading Posts...</Text>
