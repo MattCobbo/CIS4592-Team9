@@ -13,6 +13,9 @@ import Home from './routes/home';
 import About from './routes/about';
 import Search from './routes/search';
 import Settings from './routes/settings';
+import Organizations from './routes/Organizations';
+import CreateOrganization from './routes/CreateOrganization';
+import OrganizationProfile from './routes/OrganizationProfile';
 
 import { AuthProvider } from './context/useAuth';
 
@@ -29,6 +32,9 @@ function App() {
             <Route element={<Layout><PrivateRoute><Settings/></PrivateRoute></Layout>} path='/settings' />
             <Route element={<Layout><Login/></Layout>} path='/login' />
             <Route element={<Layout><Register/></Layout>} path='/register' />
+            <Route element={<Layout><PrivateRoute><Organizations /></PrivateRoute></Layout>} path='/organizations' />
+            <Route element={<Layout><PrivateRoute><CreateOrganization /></PrivateRoute></Layout>} path='/create-organization' />
+            <Route element={<Layout><PrivateRoute><OrganizationProfile /></PrivateRoute></Layout>} path='/organization/:orgId' />
           </Routes>
         </AuthProvider>
       </Router>

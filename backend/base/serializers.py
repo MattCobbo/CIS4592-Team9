@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import MyUser, Post
+from .models import MyUser, Post, Organization
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):
@@ -49,6 +49,29 @@ class MyUserProfileSerializer(serializers.ModelSerializer):
 
     def get_following_count(self, obj):
         return obj.following.count()
+    
+class OrganizationSerializer(serializers.ModelSerializer):
+    owner_username = serializers.ReadOnlyField(source='owner.username')
+    member_count = serializers.SerializerMethodField()
+    is_owner = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Organization
+        fields = [
+            'id', 'name', 'bio', 'profile_image', 'created_at',
+            'owner_username', 'members', 'pending_requests',
+            'member_count', 'is_owner'
+        ]
+
+    def get_member_count(self, obj):
+        return obj.members.count()
+
+    def get_is_owner(self, obj):
+        """Check if the requesting user is the owner."""
+        request = self.context.get('request', None)
+        if request and request.user == obj.owner:
+            return True
+        return False
     
 
 class PostSerializer(serializers.ModelSerializer):
