@@ -12,6 +12,9 @@ import Register from './routes/register';
 import Home from './routes/home';
 import About from './routes/about';
 import Search from './routes/search';
+import Organizations from './routes/Organizations';
+import CreateOrganization from './routes/CreateOrganization';
+import OrganizationProfile from './routes/OrganizationProfile';
 
 import { AuthProvider } from './context/useAuth';
 
@@ -21,12 +24,15 @@ function App() {
       <Router>
         <AuthProvider>
           <Routes>
-            <Route element={<Layout><PrivateRoute><UserProfile/></PrivateRoute></Layout>} path='/:username' />
-            <Route element={<Layout><PrivateRoute><Home/></PrivateRoute></Layout>} path='/' />
-            <Route element={<Layout><PrivateRoute><Search/></PrivateRoute></Layout>} path='/search/:searchValue' />
-            <Route element={<Layout><PrivateRoute><About/></PrivateRoute></Layout>} path='/about' />
-            <Route element={<Layout><Login/></Layout>} path='/login' />
-            <Route element={<Layout><Register/></Layout>} path='/register' />
+            <Route element={<Layout><PrivateRoute><UserProfile /></PrivateRoute></Layout>} path='/:username' />
+            <Route element={<Layout><PrivateRoute><Home /></PrivateRoute></Layout>} path='/' />
+            <Route element={<Layout><PrivateRoute><Search /></PrivateRoute></Layout>} path='/search/:searchValue' />
+            <Route element={<Layout><PrivateRoute><About /></PrivateRoute></Layout>} path='/about' />
+            <Route element={<Layout><Login /></Layout>} path='/login' />
+            <Route element={<Layout><Register /></Layout>} path='/register' />
+            <Route element={<Layout><PrivateRoute><Organizations /></PrivateRoute></Layout>} path='/organizations' />
+            <Route element={<Layout><PrivateRoute><CreateOrganization /></PrivateRoute></Layout>} path='/create-organization' />
+            <Route element={<Layout><PrivateRoute><OrganizationProfile /></PrivateRoute></Layout>} path='/organization/:orgId' />
           </Routes>
         </AuthProvider>
       </Router>

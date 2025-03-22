@@ -5,8 +5,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework.pagination import PageNumberPagination
-from .models import MyUser, Post
-from .serializers import MyUserProfileSerializer, UserRegisterSerializer, PostSerializer, UserSerializer
+from rest_framework import status
+from .models import MyUser, Post, Organization
+from .serializers import MyUserProfileSerializer, UserRegisterSerializer, PostSerializer, UserSerializer, OrganizationSerializer
 
 
 @api_view(["GET"])
@@ -146,27 +147,27 @@ def toggleFollow(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_users_posts(request, pk):
-
     try:
         user = MyUser.objects.get(username=pk)
         my_user = MyUser.objects.get(username=request.user.username)
     except MyUser.DoesNotExist:
         return Response({"error": "user does not exist"})
-    
-    posts = user.posts.all().order_by('-created_at')
+
+    # Currently you do:
+    # posts = user.posts.all().order_by('-created_at')
+
+    # INSTEAD, exclude posts that belong to an organization:
+    posts = user.posts.filter(organization__isnull=True).order_by('-created_at')
 
     serializer = PostSerializer(posts, many=True)
 
     data = []
-
     for post in serializer.data:
-        new_post = {}
-
+        # Mark liked or not
         if my_user.username in post['likes']:
-            new_post = {**post, 'liked':True}
+            data.append({**post, 'liked': True})
         else:
-            new_post = {**post, 'liked':False}
-        data.append(new_post)
+            data.append({**post, 'liked': False})
 
     return Response(data)
 
@@ -195,39 +196,47 @@ def toggleLike(request):
         return Response({'error':'failed to like post'})
     
 
-@api_view(['POST'])
+@api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def create_post(request):
+    """Create a user post or an organization post."""
     try:
         data = request.data
+        user = request.user
 
-        try:
-            user = MyUser.objects.get(username=request.user.username)
-        except MyUser.DoesNotExist:
-            return Response({"error": "user does not exit"})
-        
+        # Check if an organization ID was provided
+        organization = None
+        if "organization_id" in data and data["organization_id"]:
+            try:
+                organization = Organization.objects.get(id=data["organization_id"])
+            except Organization.DoesNotExist:
+                return Response({"error": "Organization not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Create the post
         post = Post.objects.create(
             user=user,
-            description=data['description']
+            description=data["description"],
+            organization=organization  # ✅ Assign to org if provided, else None
         )
 
         serializer = PostSerializer(post, many=False)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-        return Response(serializer.data)
-    except:
-        return Response({'error':'error creating post'})
-    
+    except Exception as e:
+        return Response({"error": "Error creating post", "details": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_posts(request):
-
     try:
         my_user = MyUser.objects.get(username=request.user.username)
     except MyUser.DoesNotExist:
         return Response({"error": "user does not exist"})
 
-    posts = Post.objects.all().order_by('-created_at')
+    # 🔹 Exclude organization posts from the main feed
+    posts = Post.objects.filter(organization__isnull=True).order_by('-created_at')
 
     paginator = PageNumberPagination()
     paginator.page_size = 10
@@ -236,15 +245,11 @@ def get_posts(request):
     serializer = PostSerializer(result_page, many=True)
 
     data = []
-
     for post in serializer.data:
-        new_post = {}
-
         if my_user.username in post['likes']:
-            new_post = {**post, 'liked':True}
+            data.append({**post, 'liked': True})
         else:
-            new_post = {**post, 'liked':False}
-        data.append(new_post)
+            data.append({**post, 'liked': False})
 
     return paginator.get_paginated_response(data)
 
@@ -255,3 +260,125 @@ def search_users(request):
     users = MyUser.objects.filter(username__icontains=query)
     serializer = UserSerializer(users, many=True)
     return Response(serializer.data)
+
+
+# Organization views
+#
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def create_organization(request):
+    """Allows users to create a new organization if the name is unique."""
+    data = request.data
+    user = request.user
+
+    # Check if an organization with the same name already exists
+    if Organization.objects.filter(name=data['name']).exists():
+        return Response({"error": "An organization with this name already exists."}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Create organization
+    org = Organization.objects.create(
+        name=data['name'],
+        bio=data.get('bio', ''),
+        owner=user,
+    )
+    org.members.add(user)  # The creator is automatically a member
+    org.save()
+
+    serializer = OrganizationSerializer(org)
+    return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def request_to_join_organization(request, org_id):
+    """Allows users to request to join an organization."""
+    try:
+        org = Organization.objects.get(id=org_id)
+        user = request.user
+
+        if user in org.members.all():
+            return Response({"error": "Already a member"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if user in org.pending_requests.all():
+            return Response({"error": "Already requested"}, status=status.HTTP_400_BAD_REQUEST)
+
+        org.pending_requests.add(user)
+        return Response({"success": "Join request sent"}, status=status.HTTP_200_OK)
+
+    except Organization.DoesNotExist:
+        return Response({"error": "Organization not found"}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def accept_join_request(request, org_id, user_id):
+    """Allows organization owners to accept a join request."""
+    try:
+        org = Organization.objects.get(id=org_id)
+
+        if request.user != org.owner:
+            return Response({"error": "Only owner can accept requests"}, status=status.HTTP_403_FORBIDDEN)
+
+        user = MyUser.objects.get(id=user_id)
+
+        if user not in org.pending_requests.all():
+            return Response({"error": "No pending request from this user"}, status=status.HTTP_400_BAD_REQUEST)
+
+        org.pending_requests.remove(user)
+        org.members.add(user)
+        return Response({"success": "User added to organization"}, status=status.HTTP_200_OK)
+
+    except Organization.DoesNotExist:
+        return Response({"error": "Organization not found"}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_organization_posts(request, org_id):
+    """Retrieve posts from an organization, only visible to members."""
+    try:
+        org = Organization.objects.get(id=org_id)
+        user = request.user
+
+        if user not in org.members.all():
+            return Response({"error": "You are not a member of this organization"}, status=status.HTTP_403_FORBIDDEN)
+
+        posts = Post.objects.filter(organization=org).order_by('-created_at')
+        serializer = PostSerializer(posts, many=True)
+
+        return Response(serializer.data)
+
+    except Organization.DoesNotExist:
+        return Response({"error": "Organization not found"}, status=status.HTTP_404_NOT_FOUND)
+    
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_user_organizations(request):
+    """Retrieve all organizations the logged-in user is a part of."""
+    user = request.user
+    organizations = Organization.objects.filter(members=user)
+    serializer = OrganizationSerializer(organizations, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_organization_feed(request):
+    """Retrieve all posts from organizations the user is a part of."""
+    user = request.user
+    organizations = Organization.objects.filter(members=user)
+    posts = Post.objects.filter(organization__in=organizations).order_by('-created_at')
+
+    serializer = PostSerializer(posts, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_organization(request, org_id):
+    try:
+        org = Organization.objects.get(id=org_id)
+    except Organization.DoesNotExist:
+        return Response({"error": "Organization not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    serializer = OrganizationSerializer(org, context={"request": request})
+    return Response(serializer.data, status=status.HTTP_200_OK)

@@ -45,7 +45,7 @@ export const login = async (username, password) => {
 }
 
 export const register = async (username, email, firstName, lastName, password) => {
-    const response = await api.post('/register/', { username:username, email:email, first_name:firstName, last_name:lastName, password:password });
+    const response = await api.post('/register/', { username: username, email: email, first_name: firstName, last_name: lastName, password: password });
     return response.data
 }
 
@@ -55,7 +55,7 @@ export const get_auth = async () => {
 }
 
 export const toggleFollow = async (username) => {
-    const response = await api.post('/toggle_follow/', { username:username});
+    const response = await api.post('/toggle_follow/', { username: username });
     return response.data
 }
 
@@ -65,14 +65,17 @@ export const get_users_posts = async (username) => {
 }
 
 export const toggleLike = async (id) => {
-    const response = await api.post('/toggleLike/', {id:id});
+    const response = await api.post('/toggleLike/', { id: id });
     return response.data
 }
 
-export const create_post = async (description) => {
-    const response = await api.post('/create_post/', {description});
-    return response.data
-}
+export const create_post = async ({ description, organization_id = null }) => {
+    const response = await api.post("/create_post/", {
+        description,
+        organization_id,
+    });
+    return response.data;
+};
 
 export const get_posts = async (num) => {
     const response = await api.get(`/get_posts/?page=${num}`)
@@ -80,6 +83,43 @@ export const get_posts = async (num) => {
 }
 
 export const search_users = async (search) => {
-    const response = await api.get(`/search/?query=${search}`, {timeout: 3000})
+    const response = await api.get(`/search/?query=${search}`, { timeout: 3000 })
     return response.data
 }
+
+// Organization API Calls
+
+export const createOrganization = async (name, bio) => {
+    const response = await api.post('/organization/create/', { name, bio });
+    return response.data;
+};
+
+export const getOrganizations = async () => {
+    const response = await api.get('/organization/all/');
+    return response.data;
+};
+
+export const getOrganization = async (org_id) => {
+    const response = await api.get(`/organization/${org_id}/`);
+    return response.data;
+};
+
+export const joinOrganization = async (org_id) => {
+    const response = await api.post(`/organization/join/${org_id}/`);
+    return response.data;
+};
+
+export const getOrganizationPosts = async (org_id) => {
+    const response = await api.get(`/organization/posts/${org_id}/`);
+    return response.data;
+};
+
+export const getUserOrganizations = async () => {
+    const response = await api.get('/organization/user/');
+    return response.data;
+};
+
+export const getOrganizationFeed = async () => {
+    const response = await api.get("/organization/feed/");
+    return response.data;
+};
