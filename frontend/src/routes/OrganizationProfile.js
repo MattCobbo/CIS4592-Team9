@@ -1,7 +1,7 @@
 import { Flex, Text, VStack, Box, Heading, HStack, Image, Button, Spacer } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { getOrganization, getOrganizationPosts, create_post } from "../api/endpoints";
+import { getOrganization, getOrganizationPosts, create_org_post } from "../api/endpoints";
 import { SERVER_URL } from "../constants/constants";
 import Post from "../components/post";
 
@@ -89,7 +89,7 @@ const CreateOrgPost = ({ orgId, setPosts, posts }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const newPost = await create_post({
+            const newPost = await create_org_post({
                 description: newPostContent,
                 organization_id: orgId,
             });

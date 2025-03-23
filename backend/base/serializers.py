@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import MyUser, Post, Organization
+from .models import MyUser, Post, Organization, orgPost
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):
@@ -97,3 +97,22 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = MyUser
         fields = ['username', 'bio', 'email', 'profile_image', 'first_name', 'last_name']
+
+
+class OrgPostSerializer(serializers.ModelSerializer):
+    username = serializers.SerializerMethodField()
+    like_count = serializers.SerializerMethodField()
+    formatted_date = serializers.SerializerMethodField()
+
+    class Meta:
+        model = orgPost
+        fields = ['id', 'username','description','formatted_date','likes', 'like_count', 'organization']
+
+    def get_username(self, obj):
+        return obj.user.username
+
+    def get_like_count(self, obj):
+        return obj.likes.count()
+
+    def get_formatted_date(self, obj):
+        return obj.created_at.strftime("%d %b %y")

@@ -33,8 +33,17 @@ class Post(models.Model):
     description = models.CharField(max_length=800)
     created_at = models.DateField(auto_now_add=True)
     likes = models.ManyToManyField(MyUser, related_name='post_likes', blank=True)
+    
+
+class orgPost(models.Model):
+    user = models.ForeignKey(MyUser, on_delete=models.CASCADE, related_name='organization_posts')
+    description = models.CharField(max_length=800)
+    created_at = models.DateField(auto_now_add=True)
+    likes = models.ManyToManyField(MyUser, related_name='org_post_likes', blank=True)
     organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name='organization_posts', null=True, blank=True)
 
     def is_organization_post(self):
         return self.organization is not None
-
+    
+    def __str__(self):
+        return f"OrgPost by {self.user.username} in {self.organization.name if self.organization else 'Unknown Organization'}"

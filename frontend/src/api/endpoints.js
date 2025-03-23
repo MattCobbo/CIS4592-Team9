@@ -133,3 +133,11 @@ export const getOrganizationFeed = async () => {
     const response = await api.get("/organization/feed/");
     return response.data;
 };
+
+export const create_org_post = async ({ description, organization_id }) => {
+    const response = await api.post("/create_org_post/", {
+        description,
+        organization_id,  // ✅ Make sure the organization ID is sent
+    });
+    return response.data;
+};

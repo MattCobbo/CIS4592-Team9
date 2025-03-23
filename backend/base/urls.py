@@ -8,7 +8,7 @@ from .views import (
     create_post, get_posts, search_users, logout, update_user_details,
     create_organization, request_to_join_organization,
     accept_join_request, get_organization_posts, get_user_organizations,
-    get_organization_feed, get_organization,
+    get_organization_feed, get_organization, create_org_post
 )
 
 urlpatterns = [
@@ -34,7 +34,7 @@ urlpatterns = [
     path("organization/accept/<int:org_id>/<int:user_id>/", accept_join_request),
     path("organization/posts/<int:org_id>/", get_organization_posts),
     path("organization/<int:org_id>/", get_organization),
-    
+    path("create_org_post/", create_org_post),
     ] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
 )

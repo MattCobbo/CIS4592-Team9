@@ -205,7 +205,7 @@ const UserPosts = ({ username }) => {
         const fetchPosts = async () => {
             try {
                 const posts = await get_users_posts(username)
-                setPosts(posts)
+                setPosts(Array.isArray(posts) ? posts : []);
             } catch {
                 alert('error getting posts')
             } finally {
@@ -214,7 +214,18 @@ const UserPosts = ({ username }) => {
         }
 
         fetchPosts()
-    }, [])
+    }, [username])
+
+    return (
+        <Flex direction={'column'} gap={'30px'} pb={'60px'}>
+            {
+                loading ? <Text>Loading...</Text>
+                    : posts.map((post) => {
+                        return <Post key={post.id} id={post.id} username={post.username} description={post.description} formatted_date={post.formatted_date} liked={post.liked} like_count={post.like_count} />
+                    })
+            }
+        </Flex>
+    )
 }
 
 export default UserProfile;
