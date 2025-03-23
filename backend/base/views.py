@@ -161,7 +161,6 @@ def toggleFollow(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_users_posts(request, pk):
-
     try:
         user = MyUser.objects.get(username=pk)
         my_user = MyUser.objects.get(username=request.user.username)
@@ -173,7 +172,6 @@ def get_users_posts(request, pk):
     serializer = PostSerializer(posts, many=True)
 
     data = []
-
     for post in serializer.data:
         new_post = {}
 
@@ -210,26 +208,27 @@ def toggleLike(request):
         return Response({'error':'failed to like post'})
     
 
-@api_view(["POST"])
+@api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def create_post(request):
-    """Create a user post or an organization post."""
     try:
         data = request.data
-        user = request.user
 
-        # Create the post
+        try:
+            user = MyUser.objects.get(username=request.user.username)
+        except MyUser.DoesNotExist:
+            return Response({"error": "user does not exit"})
+
         post = Post.objects.create(
             user=user,
-            description=data["description"],
+            description=data['description']
         )
 
         serializer = PostSerializer(post, many=False)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    except Exception as e:
-        return Response({"error": "Error creating post", "details": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
+        return Response(serializer.data)
+    except:
+        return Response({'error':'error creating post'})
 
 
 @api_view(['GET'])
@@ -240,7 +239,8 @@ def get_posts(request):
     except MyUser.DoesNotExist:
         return Response({"error": "user does not exist"})
 
-    posts = Post.objects.all().order_by('-created_at')
+    # 🔹 Exclude organization posts from the main feed
+    posts = Post.objects.filter(organization__isnull=True).order_by('-created_at')
 
     paginator = PageNumberPagination()
     paginator.page_size = 10

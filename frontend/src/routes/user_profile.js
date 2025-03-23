@@ -225,7 +225,7 @@ const UserPosts = ({ username }) => {
                     })
             }
         </Flex>
-    )
-}
+    );
+};
 
 export default UserProfile;
