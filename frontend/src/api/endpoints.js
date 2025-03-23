@@ -87,7 +87,6 @@ export const search_users = async (search) => {
     return response.data
 }
 
-<<<<<<< HEAD
 export const logout = async () => {
     const response = await api.post('/logout/')
     return response.data
@@ -98,8 +97,6 @@ export const update_user = async (values) => {
     return response.data
 }
 
-=======
->>>>>>> 169e02a4d6cdb7b35851ccc886deec7133702ae8
 // Organization API Calls
 
 export const createOrganization = async (name, bio) => {
@@ -135,7 +132,6 @@ export const getUserOrganizations = async () => {
 export const getOrganizationFeed = async () => {
     const response = await api.get("/organization/feed/");
     return response.data;
-<<<<<<< HEAD
 };
 
 export const create_org_post = async ({ description, organization_id }) => {
@@ -144,6 +140,4 @@ export const create_org_post = async ({ description, organization_id }) => {
         organization_id,  // ✅ Make sure the organization ID is sent
     });
     return response.data;
-=======
->>>>>>> 169e02a4d6cdb7b35851ccc886deec7133702ae8
 };
