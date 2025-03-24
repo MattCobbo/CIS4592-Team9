@@ -239,8 +239,7 @@ def get_posts(request):
     except MyUser.DoesNotExist:
         return Response({"error": "user does not exist"})
 
-    # 🔹 Exclude organization posts from the main feed
-    posts = Post.objects.filter(organization__isnull=True).order_by('-created_at')
+    posts = Post.objects.all().order_by('-created_at')
 
     paginator = PageNumberPagination()
     paginator.page_size = 10
@@ -250,10 +249,13 @@ def get_posts(request):
 
     data = []
     for post in serializer.data:
+        new_post = {}
+
         if my_user.username in post['likes']:
-            data.append({**post, 'liked': True})
+            new_post = {**post, 'liked':True}
         else:
-            data.append({**post, 'liked': False})
+            new_post = {**post, 'liked':False}
+        data.append(new_post)
 
     return paginator.get_paginated_response(data)
 

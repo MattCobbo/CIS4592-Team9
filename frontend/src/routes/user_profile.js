@@ -7,52 +7,34 @@ import UserOrganizations from "../components/UserOrganizations";
 import Post from "../components/post";
 
 const UserProfile = () => {
+
     const get_username_from_url = () => {
         const url_split = window.location.pathname.split('/');
         return url_split[url_split.length - 1];
-    };
+    }
 
     const [username, setUsername] = useState(get_username_from_url());
-    const [posts, setPosts] = useState([]);
-    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         setUsername(get_username_from_url());
-    }, []);
-
-    useEffect(() => {
-        const fetchPosts = async () => {
-            try {
-                const userPosts = await get_users_posts(username);
-                setPosts(userPosts);
-            } catch {
-                alert("Error getting posts");
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchPosts();
-    }, [username]);
+    }, [])
 
     return (
-        <Flex w="100%" justifyContent="center">
-            <VStack w="75%">
-                <Box w="100%" mt="40px">
+        <Flex w='100%' justifyContent='center'>
+            <VStack w='75%'>
+                <Box w='100%' mt='40px'>
                     <UserDetails username={username} />
                 </Box>
-                <Box w="100%" mt="40px">
-                    <CreatePost username={username} setPosts={setPosts} posts={posts} />
+                <Box w='100%' mt='40px'>
+                    <CreatePost username={username}></CreatePost>
                 </Box>
-                <Box w="100%" mt="40px">
-                    <UserOrganizations />
-                </Box>
-                <Box w="100%" mt="40px">
-                    <UserPosts posts={posts} loading={loading} />
+                <Box w='100%' mt='40px'>
+                    <UserPosts username={username} />
                 </Box>
             </VStack>
         </Flex>
-    );
-};
+    )
+}
 
 const UserDetails = ({ username }) => {
     const [loading, setLoading] = useState(true);
@@ -133,26 +115,11 @@ const CreatePost = ({ username, setPosts, posts }) => {
         setNewPostContent(event.target.value);
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    const handleSubmit = async () => {
         try {
-            const newPost = await create_post({
-                description: newPostContent,
-                organization_id: null, // Ensures it's a personal post
-            });
-
-            if (newPost.error) {
-                alert("Error creating post");
-                return;
-            }
-
-            // ✅ Update UI immediately
-            setPosts([newPost, ...posts]);
-
-            setNewPostContent('');
-            setShowInput(false);
+            await create_post(newPostContent)
         } catch {
-            alert("Error creating post");
+            alert('error creating post')
         }
     };
 
@@ -204,6 +171,7 @@ const UserPosts = ({ username }) => {
     useEffect(() => {
         const fetchPosts = async () => {
             try {
+                console.log("Fetching posts for username:", username);
                 const posts = await get_users_posts(username)
                 setPosts(Array.isArray(posts) ? posts : []);
             } catch {
