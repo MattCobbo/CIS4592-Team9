@@ -54,6 +54,12 @@ class OrganizationSerializer(serializers.ModelSerializer):
     owner_username = serializers.ReadOnlyField(source='owner.username')
     member_count = serializers.SerializerMethodField()
     is_owner = serializers.SerializerMethodField()
+    members = serializers.SlugRelatedField(
+        many=True, read_only=True, slug_field='username'
+    )  # ✅ Includes usernames of members
+    pending_requests = serializers.SlugRelatedField(
+        many=True, read_only=True, slug_field='username'
+    )  # ✅ Includes usernames of pending users
 
     class Meta:
         model = Organization
@@ -67,11 +73,8 @@ class OrganizationSerializer(serializers.ModelSerializer):
         return obj.members.count()
 
     def get_is_owner(self, obj):
-        """Check if the requesting user is the owner."""
         request = self.context.get('request', None)
-        if request and request.user == obj.owner:
-            return True
-        return False
+        return request and request.user == obj.owner
     
 
 class PostSerializer(serializers.ModelSerializer):

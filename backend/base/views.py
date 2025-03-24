@@ -417,11 +417,10 @@ def get_organization_feed(request):
 def get_organization(request, org_id):
     try:
         org = Organization.objects.get(id=org_id)
+        serializer = OrganizationSerializer(org, context={"request": request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
     except Organization.DoesNotExist:
         return Response({"error": "Organization not found"}, status=status.HTTP_404_NOT_FOUND)
-
-    serializer = OrganizationSerializer(org, context={"request": request})
-    return Response(serializer.data, status=status.HTTP_200_OK)
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
