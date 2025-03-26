@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@widgetbot/react-embed": "^1.9.0"
+  }
+}

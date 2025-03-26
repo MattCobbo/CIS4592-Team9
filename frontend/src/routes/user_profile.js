@@ -5,7 +5,7 @@ import { get_user_profile_data, toggleFollow, get_users_posts, create_post } fro
 import { SERVER_URL } from "../constants/constants";
 
 import Post from "../components/post";
-
+import WidgetBot from '@widgetbot/react-embed'
 const UserProfile = () => {
 
     const get_username_from_url = () => {
@@ -28,9 +28,19 @@ const UserProfile = () => {
                 <Box w='100%' mt='40px'>
                     <CreatePost username={username}></CreatePost>
                 </Box>
-                <Box w='100%' mt='40px'>
-                    <UserPosts username={username} />
-                </Box>
+
+
+                <HStack w='100%' justifyContent='center' mt='40px'>
+                    <Box w='100%' mt='40px'>
+                        <UserPosts username={username} />
+                    </Box>
+
+                    <Box>
+                        <DiscordWidget />
+                    </Box>
+
+
+                </HStack>
             </VStack>
         </Flex>
     )
@@ -209,5 +219,24 @@ const UserPosts = ({ username }) => {
         </Flex>
     )
 }
+const DiscordWidget = () => {
+    useEffect(() => {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/@widgetbot/html-embed';
+        script.async = true;
+        document.body.appendChild(script);
+    }, []);
+
+    return (
+        <div>
+            <widgetbot
+                server="1328070588882882580"
+                channel="1328070588882882587"
+                width="600"
+                height="600"
+            ></widgetbot>
+        </div>
+    );
+};
 
 export default UserProfile
