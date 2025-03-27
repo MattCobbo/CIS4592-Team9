@@ -1,5 +1,6 @@
 {
   "dependencies": {
-    "@widgetbot/react-embed": "^1.9.0"
+    "@widgetbot/react-embed": "^1.9.0",
+    "react-draggable": "^4.4.6"
   }
 }
