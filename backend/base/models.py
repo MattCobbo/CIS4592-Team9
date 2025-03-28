@@ -1,8 +1,9 @@
 ## When adding new Model, must run $ py manage.py makemigrations
  #                                 $ py manage.py migrate
 
-from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.db import models
+
 
 class MyUser(AbstractUser):
     username = models.CharField(max_length=30, unique=True, primary_key=True)
