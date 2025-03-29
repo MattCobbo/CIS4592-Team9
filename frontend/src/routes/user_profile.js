@@ -3,7 +3,7 @@ import { useEffect, useState, useRef } from "react";
 import { useNavigate } from 'react-router-dom';
 import { get_user_profile_data, toggleFollow, get_users_posts, create_post } from "../api/endpoints";
 import { SERVER_URL } from "../constants/constants";
-
+import UserOrganizations from "../components/UserOrganizations";
 import Post from "../components/post";
 //import WidgetBot from '@widgetbot/react-embed'
 const UserProfile = () => {
@@ -51,15 +51,13 @@ const UserProfile = () => {
 }
 
 const UserDetails = ({ username }) => {
-
-    const [loading, setLoading] = useState(true)
-    const [bio, setBio] = useState('')
-    const [profileImage, setProfileImage] = useState('')
-    const [followerCount, setFollowerCount] = useState('')
-    const [followingCount, setFollowingCount] = useState('')
-
-    const [isOwner, setIsOwner] = useState(false)
-    const [following, setFollowing] = useState(false)
+    const [loading, setLoading] = useState(true);
+    const [bio, setBio] = useState('');
+    const [profileImage, setProfileImage] = useState('');
+    const [followerCount, setFollowerCount] = useState('');
+    const [followingCount, setFollowingCount] = useState('');
+    const [isOwner, setIsOwner] = useState(false);
+    const [following, setFollowing] = useState(false);
 
     const nav = useNavigate();
 
@@ -69,46 +67,38 @@ const UserDetails = ({ username }) => {
 
     const handleToggleFollow = async () => {
         const data = await toggleFollow(username);
-        if (data.following) {
-            setFollowerCount(followerCount + 1)
-            setFollowing(true)
-        } else {
-            setFollowerCount(followerCount - 1)
-            setFollowing(false)
-        }
-    }
+        setFollowerCount(data.following ? followerCount + 1 : followerCount - 1);
+        setFollowing(data.following);
+    };
 
     useEffect(() => {
-
         const fetchData = async () => {
             try {
                 const data = await get_user_profile_data(username);
-                setBio(data.bio)
-                setProfileImage(data.profile_image)
-                setFollowerCount(data.follower_count)
-                setFollowingCount(data.following_count)
-
-                setIsOwner(data.is_owner)
-                setFollowing(data.following)
+                setBio(data.bio);
+                setProfileImage(data.profile_image);
+                setFollowerCount(data.follower_count);
+                setFollowingCount(data.following_count);
+                setIsOwner(data.is_owner);
+                setFollowing(data.following);
             } catch {
-                console.log('error')
+                console.log("Error loading user profile");
             } finally {
-                setLoading(false)
+                setLoading(false);
             }
-        }
-        fetchData()
-
-    }, [])
+        };
+        fetchData();
+    }, []);
 
     return (
-        <VStack alignItems='start' w='100%' gap='40px'>
+        <VStack alignItems="start" w="100%" gap="40px">
             <Heading>@{username}</Heading>
-            <HStack gap='20px'>
-                <Box boxSize='150px' border='2px solid' borderColor='gray.700' bg='white' borderRadius='full' overflow='hidden'>
-                    <Image src={loading ? '' : `${SERVER_URL}${profileImage}`} boxSize='100%' objectFit='cover' />
+            <HStack gap="20px">
+                <Box boxSize="150px" border="2px solid" borderColor="gray.700" bg="white" borderRadius="full" overflow="hidden">
+                    <Image src={loading ? '' : `${SERVER_URL}${profileImage}`} boxSize="100%" objectFit="cover" />
                 </Box>
-                <VStack gap='20px'>
-                    <HStack gap='20px' fontSize='18px'>
+                <VStack gap="20px">
+                    <HStack gap="20px" fontSize="18px">
                         <VStack>
                             <Text>Followers</Text>
                             <Text>{loading ? '-' : followerCount}</Text>
@@ -124,14 +114,12 @@ const UserDetails = ({ username }) => {
                     }
                 </VStack>
             </HStack>
-            <Text fontSize='18px'>{loading ? '-' : bio}</Text>
+            <Text fontSize="18px">{loading ? '-' : bio}</Text>
         </VStack>
-    )
-}
+    );
+};
 
-
-const CreatePost = ({ username }) => {
-
+const CreatePost = ({ username, setPosts, posts }) => {
     const [loading, setLoading] = useState(true);
     const [isOwner, setIsOwner] = useState(false);
     const [newPostContent, setNewPostContent] = useState('');
@@ -150,21 +138,18 @@ const CreatePost = ({ username }) => {
     };
 
     useEffect(() => {
-
         const fetchData = async () => {
             try {
                 const data = await get_user_profile_data(username);
-
-                setIsOwner(data.is_owner)
+                setIsOwner(data.is_owner);
             } catch {
-                console.log('error')
+                console.log("Error loading user data");
             } finally {
-                setLoading(false)
+                setLoading(false);
             }
-        }
-        fetchData()
-
-    }, [])
+        };
+        fetchData();
+    }, []);
 
     return (
         <div>
@@ -200,8 +185,9 @@ const UserPosts = ({ username }) => {
     useEffect(() => {
         const fetchPosts = async () => {
             try {
+                console.log("Fetching posts for username:", username);
                 const posts = await get_users_posts(username)
-                setPosts(posts)
+                setPosts(Array.isArray(posts) ? posts : []);
             } catch {
                 alert('error getting posts')
             } finally {
@@ -210,7 +196,7 @@ const UserPosts = ({ username }) => {
         }
 
         fetchPosts()
-    }, [])
+    }, [username])
 
     return (
         <Flex direction={'column'} gap={'30px'} pb={'60px'}>
@@ -289,4 +275,4 @@ const DiscordWidget = () => {
 
 
 
-export default UserProfile
+export default UserProfile;

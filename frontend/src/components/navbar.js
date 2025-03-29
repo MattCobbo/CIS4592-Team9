@@ -1,11 +1,10 @@
 import { Flex, HStack, Text, Input, InputGroup, InputRightElement } from "@chakra-ui/react";
-import { useState } from "react"
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { IoPersonOutline, IoHomeOutline, IoSearchCircle, IoSettingsSharp } from "react-icons/io5"
 
 const Navbar = () => {
-
     const [searchValue, setSearchValue] = useState('');
     const nav = useNavigate();
 
@@ -15,9 +14,9 @@ const Navbar = () => {
     }
 
     const handleNavigateUser = () => {
-        const username = JSON.parse(localStorage.getItem('userData'))['username']
-        nav(`/${username}`)
-        window.location.reload()
+        const username = JSON.parse(localStorage.getItem('userData'))['username'];
+        nav(`/${username}`);
+        window.location.reload();
     }
 
     return (
@@ -41,14 +40,23 @@ const Navbar = () => {
                             }} />
                         </InputRightElement>
                     </InputGroup>
-                    <Text onClick={(route) => handleNavigate('about')}>About.us</Text>
-                    <Text onClick={(route) => handleNavigate('')}><IoHomeOutline size='22px' /></Text>
+
+                    {/* Existing links */}
+                    <Text onClick={() => handleNavigate('about')}>About.us</Text>
+
+                    {/* Add new Organizations link here */}
+                    <Text onClick={() => handleNavigate('organizations')}>Organizations</Text>
+
+                    {/* Home Icon */}
+                    <Text onClick={() => handleNavigate('')}><IoHomeOutline size='22px' /></Text>
+
+                    {/* User Profile Icon */}
                     <Text onClick={handleNavigateUser}><IoPersonOutline size='22px' /></Text>
                     <Text onClick={(route) => handleNavigate('settings')}><IoSettingsSharp size='22px' /></Text>
                 </HStack>
             </HStack>
         </Flex>
-    )
-}
+    );
+};
 
 export default Navbar;

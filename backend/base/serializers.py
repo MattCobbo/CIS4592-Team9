@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import MyUser, Post
+from .models import MyUser, Post, Organization, orgPost
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):
@@ -50,6 +50,32 @@ class MyUserProfileSerializer(serializers.ModelSerializer):
     def get_following_count(self, obj):
         return obj.following.count()
     
+class OrganizationSerializer(serializers.ModelSerializer):
+    owner_username = serializers.ReadOnlyField(source='owner.username')
+    member_count = serializers.SerializerMethodField()
+    is_owner = serializers.SerializerMethodField()
+    members = serializers.SlugRelatedField(
+        many=True, read_only=True, slug_field='username'
+    )  # ✅ Includes usernames of members
+    pending_requests = serializers.SlugRelatedField(
+        many=True, read_only=True, slug_field='username'
+    )  # ✅ Includes usernames of pending users
+
+    class Meta:
+        model = Organization
+        fields = [
+            'id', 'name', 'bio', 'profile_image', 'created_at',
+            'owner_username', 'members', 'pending_requests',
+            'member_count', 'is_owner'
+        ]
+
+    def get_member_count(self, obj):
+        return obj.members.count()
+
+    def get_is_owner(self, obj):
+        request = self.context.get('request', None)
+        return request and request.user == obj.owner
+    
 
 class PostSerializer(serializers.ModelSerializer):
 
@@ -74,3 +100,22 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = MyUser
         fields = ['username', 'bio', 'email', 'profile_image', 'first_name', 'last_name']
+
+
+class OrgPostSerializer(serializers.ModelSerializer):
+    username = serializers.SerializerMethodField()
+    like_count = serializers.SerializerMethodField()
+    formatted_date = serializers.SerializerMethodField()
+
+    class Meta:
+        model = orgPost
+        fields = ['id', 'username','description','formatted_date','likes', 'like_count', 'organization']
+
+    def get_username(self, obj):
+        return obj.user.username
+
+    def get_like_count(self, obj):
+        return obj.likes.count()
+
+    def get_formatted_date(self, obj):
+        return obj.created_at.strftime("%d %b %y")
