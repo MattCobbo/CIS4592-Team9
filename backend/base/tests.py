@@ -9,6 +9,12 @@ from rest_framework.test import APITestCase
 from .models import MyUser, Post
 
 
+from rest_framework.test import APITestCase
+from rest_framework import status
+from django.urls import reverse
+from django.contrib.auth import get_user_model
+from django.test import override_settings
+from django.core.cache import cache
 class MyUserModelTest(TestCase):
 
     def setUp(self):
