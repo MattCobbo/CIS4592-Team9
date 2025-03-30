@@ -1,13 +1,14 @@
-from django.test import TestCase
-from .models import MyUser, Post
-from django.core.exceptions import ValidationError
-
-from rest_framework.test import APITestCase
-from rest_framework import status
-from django.urls import reverse
 from django.contrib.auth import get_user_model
-from django.test import override_settings
 from django.core.cache import cache
+from django.core.exceptions import ValidationError
+from django.test import TestCase, override_settings
+from django.urls import reverse
+from rest_framework import status
+from rest_framework.test import APITestCase
+
+from .models import MyUser, Post
+
+
 class MyUserModelTest(TestCase):
 
     def setUp(self):
@@ -81,28 +82,29 @@ class LoginThrottleTest(APITestCase):
 
         response = self.client.post(url, data)
         self.assertNotEqual(response.status_code, status.HTTP_429_TOO_MANY_REQUESTS)
-@override_settings(REST_FRAMEWORK={
-    "DEFAULT_THROTTLE_CLASSES": [
-        "base.throttling.LoginThrottle",
-    ],
-    "DEFAULT_THROTTLE_RATES": {
-        "login": "2/minute",  # Set a low rate for testing
-    },
-})
-def test_login_throttle_resets_after_time(self):
-    """Test that the throttle resets after the time window."""
-    url = self.login_url
-    data = {"username": "testuser", "password": "password123"}
+    
+    @override_settings(REST_FRAMEWORK={
+        "DEFAULT_THROTTLE_CLASSES": [
+            "base.throttling.LoginThrottle",
+        ],
+        "DEFAULT_THROTTLE_RATES": {
+            "login": "2/minute",  # Set a low rate for testing
+        },
+    })
+    def test_login_throttle_resets_after_time(self):
+        """Test that the throttle resets after the time window."""
+        url = self.login_url
+        data = {"username": "testuser", "password": "password123"}
 
-    # First request
-    self.client.post(url, data)
+        # First request
+        self.client.post(url, data)
 
-    # Second request
-    self.client.post(url, data)
+        # Second request
+        self.client.post(url, data)
 
-    # Simulate the throttle limit being reached
-    response = self.client.post(url, data)
-    self.assertEqual(response.status_code, status.HTTP_429_TOO_MANY_REQUESTS)
+        # Simulate the throttle limit being reached
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_429_TOO_MANY_REQUESTS)
 
    
 
