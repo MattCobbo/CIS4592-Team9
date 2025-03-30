@@ -33,6 +33,14 @@ SIMPLE_JWT = {
     "USER_ID_FIELD": "username",
 }
 
+#Cache configuration
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "unique-snowflake",
+    }
+}
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -56,7 +64,7 @@ REST_FRAMEWORK = {
         'base.throttling.LoginThrottle',
     ],
     "DEFAULT_THROTTLE_RATES": {
-        'login': '4/hour',
+        'login': '4/minute',
     },
 }
 
@@ -150,3 +158,4 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
