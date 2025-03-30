@@ -49,9 +49,15 @@ INSTALLED_APPS = [
 ]
 
 REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": (
+    "DEFAULT_AUTHENTICATION_CLASSES": [
         'base.authenticate.CookiesAuthentication',
-    )
+    ],
+    "DEFAULT_THROTTLE_CLASSES": [
+        'base.throttling.LoginThrottle',
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        'login': '4/hour',
+    },
 }
 
 MIDDLEWARE = [
