@@ -35,6 +35,7 @@ urlpatterns = [
     path("organization/posts/<int:org_id>/", get_organization_posts),
     path("organization/<int:org_id>/", get_organization),
     path("create_org_post/", create_org_post),
+    path('login/', CustomTokenObtainPairView.as_view(), name='login'),
     ] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
 )
