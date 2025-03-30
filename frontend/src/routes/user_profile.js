@@ -119,7 +119,7 @@ const UserDetails = ({ username }) => {
     );
 };
 
-const CreatePost = ({ username, setPosts, posts }) => {
+const CreatePost = ({ username}) => {
     const [loading, setLoading] = useState(true);
     const [isOwner, setIsOwner] = useState(false);
     const [newPostContent, setNewPostContent] = useState('');

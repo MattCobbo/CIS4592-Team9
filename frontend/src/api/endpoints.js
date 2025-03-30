@@ -69,11 +69,8 @@ export const toggleLike = async (id) => {
     return response.data
 }
 
-export const create_post = async ({ description, organization_id = null }) => {
-    const response = await api.post("/create_post/", {
-        description,
-        organization_id,
-    });
+export const create_post = async (description) => {
+    const response = await api.post('/create_post/', { description });
     return response.data;
 };
 
@@ -93,7 +90,7 @@ export const logout = async () => {
 }
 
 export const update_user = async (values) => {
-    const response = await api.patch('/update_user/', values, {headers: {'Content-Type': 'multipart/form-data'}})
+    const response = await api.patch('/update_user/', values, { headers: { 'Content-Type': 'multipart/form-data' } })
     return response.data
 }
 
