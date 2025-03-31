@@ -34,7 +34,6 @@ These dependencies are required for the backend virtual environment
 Run the "cd .\backend\" command into the backend and then run the "python manage.py test" 
 command which will run automated tests of the backend.
 
-To see testing coverage follow this link: 
-
-# Security
-For the current security of the project please see: 
+# Documentation
+- [Testing Documentation](./documentation/test-coverage.txt)
+- [Security Documentation](./documentation/security-approach.txt)
