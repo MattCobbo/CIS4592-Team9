@@ -455,3 +455,11 @@ def create_org_post(request):
 
     except Exception as e:
         return Response({"error": "Error creating organization post", "details": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def search_organizations(request):
+    query = request.query_params.get('query', '')
+    organizations = Organization.objects.filter(name__icontains=query)
+    serializer = OrganizationSerializer(organizations, many=True)
+    return Response(serializer.data)
