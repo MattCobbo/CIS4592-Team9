@@ -138,3 +138,8 @@ export const create_org_post = async ({ description, organization_id }) => {
     });
     return response.data;
 };
+
+export const search_organizations = async (search) => {
+    const response = await api.get(`/search_organizations/?query=${search}`, { timeout: 3000 })
+    return response.data
+}
