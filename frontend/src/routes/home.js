@@ -52,8 +52,8 @@ const Home = () => {
 
     return (
         <Flex w="100%" justifyContent="center" pt="50px">
-            <VStack alignItems="start" w="30%" p="10px">
-                <Heading size="md">Organization Feed</Heading>
+            <VStack alignItems="start" gap="30px" w="30%" pb="50px">
+                <Heading>Organization Feed</Heading>
                 {loading ? (
                     <Text>Loading Organization Posts...</Text>
                 ) : orgPosts.length > 0 ? (
@@ -78,12 +78,12 @@ const Home = () => {
                 {
                     loading ?
                         <Text>Loading Posts...</Text>
-                    :
+                        :
                         posts ?
                             posts.map((post) => {
                                 return <Post key={post.id} id={post.id} username={post.username} description={post.description} formatted_date={post.formatted_date} liked={post.liked} like_count={post.like_count} />
                             })
-                        : <></>
+                            : <></>
                 }
 
                 {nextPage && !loading && (
