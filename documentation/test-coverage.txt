@@ -1,0 +1,191 @@
+1. MyUserModelTest
+This test class focuses on the custom user model (MyUser), ensuring that user creation, 
+validation, and relationship fields (like followers) work as expected.
+
+
+setUp
+Creates two users (user1 and user2) to be used in the tests.
+
+test_user_creation
+What it tests: Verifies that a user is created with the correct username, bio, and password.
+Why it’s important: Ensures that MyUser.objects.create_user successfully sets the user fields and hashed password.
+
+
+test_followers_relationship
+What it tests: 
+Checks the followers relationship by adding user2 to user1’s followers.
+Why it’s important: 
+Confirms that the many-to-many relationship (user1.followers.add(user2)) 
+properly updates both sides: user1.followers and user2.following.
+test_invalid_username
+
+What it tests: 
+Attempts to create a user with an empty username.
+
+Why it’s important: 
+Ensures that validation (user.full_clean()) catches invalid data and raises 
+ValidationError instead of allowing an empty username to be saved.
+
+
+2. PostModelTest
+This class tests the basic functionality of a Post and its relationship to the MyUser model.
+
+setUp
+Creates one user (testuser) and a single post for that user.
+
+test_post_creation
+What it tests: 
+Checks whether a Post object is created with the correct user reference and description.
+
+Why it’s important: 
+Validates that the foreign key link to the user and the description field are properly set.
+
+test_post_likes
+What it tests: 
+Verifies that liking a post (adding a user to post.likes) functions correctly.
+
+Why it’s important: 
+Ensures the many-to-many relationship on likes is handled properly—i.e., a user can be added/removed from a post’s likes.
+
+test_auto_created_at
+What it tests: 
+Checks that created_at is automatically set when the post is created.
+
+Why it’s important: 
+Confirms that the auto_now_add=True (or equivalent) works, 
+guaranteeing timestamps are saved on post creation.
+
+
+3. OrganizationModelTest
+This class tests the Organization model, 
+which has its own attributes as well as relationships (owner, members, and pending requests).
+
+setUp
+Creates one user as an organization owner, plus a member and a pending user.
+Creates an Organization object using the owner.
+
+test_organization_creation
+What it tests: 
+Ensures that the organization’s name, bio, owner, and created_at timestamp are correctly set.
+
+Why it’s important: 
+Confirms basic model functionality for an organization.
+
+test_unique_organization_name
+What it tests: 
+Tries to create another Organization with the same name, expecting a ValidationError.
+
+Why it’s important: 
+Verifies the unique=True constraint on the name field is enforced.
+
+test_organization_str_method
+What it tests: 
+Checks that str(organization) returns the organization’s name.
+
+Why it’s important: 
+Ensures that the model’s __str__ method is implemented correctly, 
+which is helpful for logging and debugging.
+
+test_add_member_to_organization
+What it tests: 
+Adds a member to an organization’s members field and verifies membership.
+
+Why it’s important: 
+Confirms the many-to-many relationship for members is set up and functions correctly.
+
+test_pending_requests
+What it tests: 
+Adds a user to pending_requests to simulate a “join request” flow.
+
+Why it’s important: 
+Validates that the organization can track users who want to join 
+(before they become full members).
+
+test_remove_member_from_organization
+What it tests: 
+Ensures that removing a user from members updates the relationship accordingly.
+
+Why it’s important: 
+Confirms that membership changes (like removing a member) 
+behave as expected in a many-to-many field.
+
+
+4. OrgPostModelTest
+This class tests posts specifically associated with an organization, 
+as well as “personal” posts that have no organization attached.
+
+setUp
+Creates a user, an organization, an org-affiliated post, and a personal post (no Organization).
+
+test_org_post_creation
+What it tests: 
+Checks that an orgPost referencing both a user and an 
+organization is created properly.
+
+Why it’s important: 
+Verifies the foreign keys (user and organization) are 
+valid and that created_at is auto-set.
+
+test_personal_post_creation
+What it tests: 
+Creates an orgPost without an associated organization 
+and confirms it’s handled correctly.
+
+Why it’s important: 
+Validates the model logic for cases where a post doesn’t 
+belong to any org (organization can be null).
+
+test_is_organization_post_method
+What it tests: 
+Checks that the method is_organization_post() returns 
+True if the post is associated with an org, else False.
+
+Why it’s important: 
+Confirms the logic for distinguishing org posts from personal posts.
+
+test_org_post_str_method
+What it tests: 
+Ensures __str__ returns "OrgPost by <username> in <org_name>".
+
+Why it’s important: 
+Improves readability and debugging when printing or logging the object.
+
+test_personal_post_str_method
+What it tests: 
+Ensures that if organization is None, the string representation 
+includes "Unknown Organization".
+
+Why it’s important: 
+Confirms that the __str__ method handles personal (non-org) posts gracefully.
+
+test_org_post_likes
+What it tests: 
+Verifies that a different user can “like” an orgPost by adding them to orgPost.likes.
+
+Why it’s important: Ensures the many-to-many likes field is properly configured and manipulated for organization posts.
+
+
+5. LoginThrottleTest
+This APITestCase checks custom throttling behavior for login attempts.
+
+setUp
+Creates a test user and sets up a login URL.
+Important for repeated login attempts in subsequent tests.
+
+test_login_throttle_allows_within_limit
+
+What it tests: 
+Submits multiple valid login requests under the specified throttle limit (2/minute).
+
+Why it’s important: 
+Ensures that legitimate login attempts aren’t incorrectly 
+throttled as long as they remain within rate limits.
+
+test_login_throttle_resets_after_time
+What it tests: 
+Makes several login attempts to exceed the limit, 
+then checks that the throttle denies login after hitting the rate limit.
+
+Why it’s important: 
+Confirms the throttle is actually enforced and that continued 
+attempts after exceeding the limit result in 429 TOO MANY REQUESTS.
