@@ -90,7 +90,6 @@ class LoginThrottleTest(APITestCase):
         # Second request
         response = self.client.post(url, data)
         self.assertNotEqual(response.status_code, status.HTTP_429_TOO_MANY_REQUESTS)
-<<<<<<< HEAD
     
     @override_settings(REST_FRAMEWORK={
         "DEFAULT_THROTTLE_CLASSES": [
@@ -116,29 +115,6 @@ class LoginThrottleTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_429_TOO_MANY_REQUESTS)
 
    
-=======
-
-    @override_settings(REST_FRAMEWORK={
-        "DEFAULT_THROTTLE_CLASSES": [
-            "base.throttling.LoginThrottle",
-        ],
-        "DEFAULT_THROTTLE_RATES": {
-            "login": "2/minute",  # Set a low rate for testing
-        },
-    })
-    def test_login_throttle_blocks_after_limit(self):
-        """Test that login requests exceeding the throttle limit are blocked."""
-        url = self.login_url
-        data = {"username": "testuser", "password": "password123"}
-
-        # First request
-        response = self.client.post(url, data)
-        self.assertNotEqual(response.status_code, status.HTTP_429_TOO_MANY_REQUESTS)
-
-        # Second request
-        response = self.client.post(url, data)
-        self.assertNotEqual(response.status_code, status.HTTP_429_TOO_MANY_REQUESTS)
->>>>>>> d2a84927 (adjusted testing and settings)
 
         # Third request (should be throttled)
         response = self.client.post(url, data)
