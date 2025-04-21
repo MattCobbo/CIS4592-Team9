@@ -1,8 +1,8 @@
 import { useDisclosure, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, ModalFooter, Input, Textarea, useToast } from "@chakra-ui/react";
 import { createEvent, updateRSVP } from "../api/endpoints";
 import { Flex, Text, VStack, Box, Heading, HStack, Image, Button, Spacer, Divider } from "@chakra-ui/react";
-import { useEffect, useState, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useEffect, useState, useRef, useRef } from "react";
+import { useParams, useNavigate, useNavigate } from "react-router-dom";
 import { getOrganization, getOrganizationPosts, getOrganizationEvents, create_org_post, joinOrganization } from "../api/endpoints";
 import { SERVER_URL } from "../constants/constants";
 import Post from "../components/post";
@@ -96,6 +96,17 @@ const OrganizationProfile = () => {
                             <OrganizationDiscordWidget />
                         </Box>
                     </HStack>
+
+                    <HStack w="100%" spacing="40px" alignItems="flex-start" justifyContent="center" mt="40px">
+                        <Box w="100%" maxW="640px">
+                            <OrganizationPosts posts={posts} />
+                        </Box>
+
+                        {/* Discord Widget */}
+                        <Box w="100%" maxW="640px">
+                            <OrganizationDiscordWidget />
+                        </Box>
+                    </HStack>
                 </VStack>
 
                 <VStack w="45%" alignItems="flex-start" spacing="30px" mt="40px">
@@ -109,6 +120,12 @@ const OrganizationProfile = () => {
 };
 
 const OrganizationDetails = ({ organization }) => {
+    const navigate = useNavigate();
+
+    const handleEditOrganization = () => {
+        navigate(`/organization/${organization.id}/edit`);
+    };
+
     const toast = useToast();
     const [joining, setJoining] = useState(false);
     const [hasPendingRequest, setHasPendingRequest] = useState(false);
@@ -180,7 +197,7 @@ const OrganizationDetails = ({ organization }) => {
                     </VStack>
 
                     {organization.is_owner && (
-                        <Button w="100%" colorScheme="blue" onClick={handleEditOrganization}>Edit Organization</Button>
+                        <Button w="100%" onClick={handleEditOrganization} colorScheme="blue" onClick={handleEditOrganization}>Edit Organization</Button>
                     )}
 
                     {!organization.is_owner && !isMember && !hasPendingRequest && (
