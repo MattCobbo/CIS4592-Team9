@@ -1,6 +1,6 @@
 import { Flex, Text, VStack, Box, Heading, HStack, Image, Button, Spacer } from "@chakra-ui/react";
-import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useEffect, useState, useRef } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { getOrganization, getOrganizationPosts, create_org_post } from "../api/endpoints";
 import { SERVER_URL } from "../constants/constants";
 import Post from "../components/post";
@@ -49,15 +49,29 @@ const OrganizationProfile = () => {
                 <Box w="100%" mt="40px">
                     <CreateOrgPost orgId={orgId} setPosts={setPosts} posts={posts} />
                 </Box>
-                <Box w="100%" mt="40px">
-                    <OrganizationPosts posts={posts} />
-                </Box>
+
+                <HStack w="100%" spacing="40px" alignItems="flex-start" justifyContent="center" mt="40px">
+                    <Box w="100%" maxW="640px">
+                        <OrganizationPosts posts={posts} />
+                    </Box>
+
+                    {/* Discord Widget */}
+                    <Box w="100%" maxW="640px">
+                        <OrganizationDiscordWidget />
+                    </Box>
+                </HStack>
             </VStack>
         </Flex>
     );
 };
 
 const OrganizationDetails = ({ organization }) => {
+    const navigate = useNavigate();
+
+    const handleEditOrganization = () => {
+        navigate(`/organization/${organization.id}/edit`);
+    };
+
     return (
         <VStack alignItems="start" w="100%" gap="40px">
             <Heading>{organization.name}</Heading>
@@ -70,7 +84,7 @@ const OrganizationDetails = ({ organization }) => {
                         <Text>Members</Text>
                         <Text>{organization.member_count}</Text>
                     </VStack>
-                    {organization.is_owner && <Button w="100%">Edit Organization</Button>}
+                    {organization.is_owner && <Button w="100%" onClick={handleEditOrganization}>Edit Organization</Button>}
                 </VStack>
             </HStack>
             <Text fontSize="18px">{organization.bio}</Text>
@@ -138,6 +152,44 @@ const OrganizationPosts = ({ posts }) => {
                 <Text>No posts yet.</Text>
             )}
         </Flex>
+    );
+};
+
+const OrganizationDiscordWidget = () => {
+    const containerRef = useRef(null);
+
+    useEffect(() => {
+        if (!containerRef.current) return;
+
+        containerRef.current.innerHTML = "";
+
+        const widget = document.createElement("widgetbot");
+        widget.setAttribute("server", "1328070588882882580");
+        widget.setAttribute("channel", "1328070588882882587");
+        widget.setAttribute("width", "100%");
+        widget.setAttribute("height", "100%");
+
+        const script = document.createElement("script");
+        script.src = "https://cdn.jsdelivr.net/npm/@widgetbot/html-embed";
+        script.async = true;
+
+        containerRef.current.appendChild(widget);
+        containerRef.current.appendChild(script);
+    }, []);
+
+    return (
+        <Box
+            ref={containerRef}
+            w="100%"
+            maxW="640px"
+            h="600px"
+            borderRadius="lg"
+            overflow="hidden"
+            border="1px solid"
+            borderColor="gray.200"
+            boxShadow="md"
+            bg="white"
+        />
     );
 };
 
