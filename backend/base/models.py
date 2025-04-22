@@ -48,3 +48,49 @@ class orgPost(models.Model):
     
     def __str__(self):
         return f"OrgPost by {self.user.username} in {self.organization.name if self.organization else 'Unknown Organization'}"
+
+class Event(models.Model):
+    """An event that belongs to an Organization."""
+    organization = models.ForeignKey(
+        Organization,
+        on_delete=models.CASCADE,
+        related_name="events",
+    )
+    creator = models.ForeignKey(
+        MyUser,
+        on_delete=models.CASCADE,
+        related_name="created_events",
+    )
+    title = models.CharField(max_length=120)
+    description = models.TextField(blank=True)
+    starts_at = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class RSVP(models.TextChoices):
+        YES = "Y", "Going"
+        NO = "N", "Not going"
+        MAYBE = "M", "Undecided"
+
+    # one row per user ‑ per event
+    attendees = models.ManyToManyField(
+        MyUser,
+        through="EventAttendance",
+        related_name="event_responses",
+        blank=True,
+    )
+
+    def __str__(self):
+        return f"{self.title} on {self.starts_at:%Y‑%m‑%d %H:%M}"
+
+class EventAttendance(models.Model):
+    """Join‑table that stores each member’s RSVP."""
+    event = models.ForeignKey(Event, on_delete=models.CASCADE)
+    user  = models.ForeignKey(MyUser, on_delete=models.CASCADE)
+    rsvp  = models.CharField(
+        max_length=1,
+        choices=Event.RSVP.choices,
+        default=Event.RSVP.MAYBE,
+    )
+
+    class Meta:
+        unique_together = ("event", "user")

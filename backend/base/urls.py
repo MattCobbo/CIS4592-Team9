@@ -8,7 +8,8 @@ from .views import (
     create_post, get_posts, search_users, logout, update_user_details,
     create_organization, request_to_join_organization,
     accept_join_request, get_organization_posts, get_user_organizations,
-    get_organization_feed, get_organization, create_org_post, search_organizations
+    get_organization_feed, get_organization, create_org_post, search_organizations,
+    EventListCreateView, RSVPUpdateView, IsOrgOwner
 )
 
 urlpatterns = [
@@ -37,6 +38,8 @@ urlpatterns = [
     path("create_org_post/", create_org_post),
     path('login/', CustomTokenObtainPairView.as_view(), name='login'),
     path('search_organizations/', search_organizations),
+    path("organization/<int:org_id>/events/", EventListCreateView.as_view(), name="org-events",),
+    path("events/<int:event_id>/rsvp/", RSVPUpdateView.as_view(), name="event-rsvp",),
     ] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
 )

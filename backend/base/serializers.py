@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import MyUser, Post, Organization, orgPost
+from .models import MyUser, Post, Organization, orgPost, Event, EventAttendance
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):
@@ -119,3 +119,31 @@ class OrgPostSerializer(serializers.ModelSerializer):
 
     def get_formatted_date(self, obj):
         return obj.created_at.strftime("%d %b %y")
+
+
+class EventAttendanceSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source="user.username", read_only=True)
+
+    class Meta:
+        model  = EventAttendance
+        fields = ["username", "rsvp"]
+
+
+class EventSerializer(serializers.ModelSerializer):
+    creator_username = serializers.ReadOnlyField(source="creator.username")
+    organization_id  = serializers.IntegerField(write_only=True)
+    attendance       = EventAttendanceSerializer(
+        source="eventattendance_set", many=True, read_only=True
+    )
+
+    class Meta:
+        model  = Event
+        fields = [
+            "id",
+            "organization_id",
+            "title",
+            "description",
+            "starts_at",
+            "creator_username",
+            "attendance",
+        ]
