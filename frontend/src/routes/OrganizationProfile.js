@@ -3,7 +3,7 @@ import { createEvent, updateRSVP } from "../api/endpoints";
 import { Flex, Text, VStack, Box, Heading, HStack, Image, Button, Spacer, Divider } from "@chakra-ui/react";
 import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getOrganization, getOrganizationPosts, getOrganizationEvents, create_org_post } from "../api/endpoints";
+import { getOrganization, getOrganizationPosts, getOrganizationEvents, create_org_post, joinOrganization } from "../api/endpoints";
 import { SERVER_URL } from "../constants/constants";
 import Post from "../components/post";
 
@@ -99,6 +99,57 @@ const OrganizationProfile = () => {
 };
 
 const OrganizationDetails = ({ organization }) => {
+    const toast = useToast();
+    const [joining, setJoining] = useState(false);
+    const [hasPendingRequest, setHasPendingRequest] = useState(false);
+    const currentUsername = JSON.parse(localStorage.getItem('userData'))?.username || '';
+
+    // Check if the user has a pending request
+    useEffect(() => {
+        if (organization && organization.pending_requests) {
+            setHasPendingRequest(organization.pending_requests.includes(currentUsername));
+        }
+    }, [organization, currentUsername]);
+
+    // Check if user is a member
+    const isMember = organization?.members?.includes(currentUsername);
+
+    const handleJoinRequest = async () => {
+        setJoining(true);
+        try {
+            const response = await joinOrganization(organization.id);
+
+            if (response.success) {
+                toast({
+                    title: "Join request sent",
+                    description: "Your request to join this organization has been sent",
+                    status: "success",
+                    duration: 3000,
+                    isClosable: true,
+                });
+                setHasPendingRequest(true);
+            } else {
+                toast({
+                    title: "Note",
+                    description: response.error || "Could not process your join request",
+                    status: "info",
+                    duration: 3000,
+                    isClosable: true,
+                });
+            }
+        } catch (error) {
+            toast({
+                title: "Error",
+                description: "Could not process your join request",
+                status: "error",
+                duration: 3000,
+                isClosable: true,
+            });
+        } finally {
+            setJoining(false);
+        }
+    };
+
     const navigate = useNavigate();
 
     const handleEditOrganization = () => {
@@ -117,7 +168,32 @@ const OrganizationDetails = ({ organization }) => {
                         <Text>Members</Text>
                         <Text>{organization.member_count}</Text>
                     </VStack>
-                    {organization.is_owner && <Button w="100%" onClick={handleEditOrganization}>Edit Organization</Button>}
+
+                    {organization.is_owner && (
+                        <Button w="100%" colorScheme="blue" onClick={handleEditOrganization}>Edit Organization</Button>
+                    )}
+
+                    {!organization.is_owner && !isMember && !hasPendingRequest && (
+                        <Button
+                            w="100%"
+                            colorScheme="green"
+                            onClick={handleJoinRequest}
+                            isLoading={joining}
+                            loadingText="Sending Request"
+                        >
+                            Join Organization
+                        </Button>
+                    )}
+
+                    {!organization.is_owner && !isMember && hasPendingRequest && (
+                        <Button
+                            w="100%"
+                            colorScheme="yellow"
+                            isDisabled={true}
+                        >
+                            Request Pending
+                        </Button>
+                    )}
                 </VStack>
             </HStack>
             <Text fontSize="18px">{organization.bio}</Text>
