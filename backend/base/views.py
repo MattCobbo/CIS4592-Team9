@@ -1,23 +1,22 @@
 from django.http import HttpResponse
 from django.views.decorators.csrf import ensure_csrf_cookie
+from rest_framework import generics, permissions, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from rest_framework.pagination import PageNumberPagination
-from rest_framework import status
-from rest_framework import generics, permissions
-from .models import MyUser, Post, Organization, orgPost, Event, EventAttendance
+
+from .models import Event, EventAttendance, MyUser, Organization, Post, orgPost
 from .serializers import (
+    EventAttendanceSerializer,
+    EventSerializer,
     MyUserProfileSerializer,
+    OrganizationSerializer,
+    OrgPostSerializer,
     PostSerializer,
     UserRegisterSerializer,
     UserSerializer,
-    OrganizationSerializer,
-    OrgPostSerializer,
-    EventSerializer,
-    EventAttendanceSerializer,
 )
 
 
