@@ -1,10 +1,13 @@
 from django.http import HttpResponse
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from django.views.decorators.csrf import ensure_csrf_cookie
 from rest_framework import generics, permissions, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.throttling import UserRateThrottle
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from .models import Event, EventAttendance, MyUser, Organization, Post, orgPost
@@ -18,12 +21,14 @@ from .serializers import (
     UserRegisterSerializer,
     UserSerializer,
 )
+from .throttling import TokenRefreshRateThrottle
 
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
+@cache_page(60 * 2)  # Cache authenticated response for 2 minutes
 def authenticated(request):
-    return Response("authenticated")
+    return Response({"status": "authenticated", "username": request.user.username})
 
 
 @api_view(["POST"])
@@ -77,9 +82,14 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 
 
 class CustomTokenRefreshView(TokenRefreshView):
+    throttle_classes = [TokenRefreshRateThrottle]
+    
     def post(self, request, *args, **kwargs):
         try:
             refresh_token = request.COOKIES.get("refresh_token")
+            if not refresh_token:
+                return Response({"success": False, "error": "No refresh token found"}, status=status.HTTP_400_BAD_REQUEST)
+                
             request.data["refresh"] = refresh_token
 
             response = super().post(request, *args, **kwargs)
@@ -88,9 +98,9 @@ class CustomTokenRefreshView(TokenRefreshView):
             access_token = tokens["access"]
 
             res = Response()
-
             res.data = {"success": True}
 
+            # Set a longer max age for the cookie
             res.set_cookie(
                 key="access_token",
                 value=access_token,
@@ -98,11 +108,12 @@ class CustomTokenRefreshView(TokenRefreshView):
                 secure=True,
                 samesite="None",
                 path="/",
+                max_age=60 * 15  # 15 minutes
             )
 
             return res
-        except:
-            return Response({"success": False})
+        except Exception as e:
+            return Response({"success": False, "error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 # @ensure_csrf_cookie

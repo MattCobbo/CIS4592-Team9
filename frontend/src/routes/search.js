@@ -1,11 +1,16 @@
-import { Flex, VStack, HStack, Heading, Text, Box, Image } from "@chakra-ui/react";
+import { Flex, VStack, HStack, Heading, Text, Box, Image, Button, useToast } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
-import { search_users, search_organizations } from "../api/endpoints";
+import { search_users, search_organizations, joinOrganization, getUserOrganizations } from "../api/endpoints";
 import { SERVER_URL } from "../constants/constants";
 import { useNavigate } from "react-router-dom";
 
 const Search = () => {
-
+    const [searchValue, setSearchValue] = useState('');
+    const [users, setUsers] = useState([]);
+    const [organizations, setOrganizations] = useState([]);
+    const [userOrgs, setUserOrgs] = useState([]);
+    const [loading, setLoading] = useState(true);
+    
     const get_search_value_from_url = () => {
         const url_split = window.location.pathname.split('/search/');
         return url_split[url_split.length - 1];
@@ -29,29 +34,33 @@ const Search = () => {
         }
     }
 
-    const [searchValue, setSearchValue] = useState(get_search_value_from_url());
-    const [users, setUsers] = useState([]);
-    const [organizations, setOrganizations] = useState([]);
+    const fetchUserOrganizations = async () => {
+        try {
+            const userOrganizations = await getUserOrganizations();
+            // Map to just the organization IDs for easy checking
+            setUserOrgs(userOrganizations.map(org => org.id));
+        } catch (err) {
+            console.error("Error fetching user organizations:", err);
+        }
+    }
 
     useEffect(() => {
         setSearchValue(get_search_value_from_url());
+        setLoading(true);
 
         const loadAll = async () => {
             try {
-                await Promise.all([fetchUsers(), fetchOrganizations()]);  // ✅ Fetch data concurrently
+                await Promise.all([fetchUsers(), fetchOrganizations(), fetchUserOrganizations()]);
             } catch (err) {
                 console.error(err);
                 alert("Error getting search query");
             } finally {
-
+                setLoading(false);
             }
         };
 
         loadAll();
-    }, [])
-
-    //fetchUsers();
-    //fetchOrganizations();
+    }, [window.location.pathname]);
 
     return (
         <Flex w='100%' justifyContent='center' pt='50px'>
@@ -60,11 +69,23 @@ const Search = () => {
                     <Heading>Organizations</Heading>
                     <VStack w='95%' maxW='500px' alignItems='center' gap='10px'>
                         <Text>{searchValue}</Text>
-                        {
-                            organizations.map((org) => {
-                                return <Organization name={org.name} profile_image={org.profile_image} owner={org.owner} id={org.id} />
-                            })
-                        }
+                        {loading ? (
+                            <Text>Loading...</Text>
+                        ) : organizations.length > 0 ? (
+                            organizations.map((org) => (
+                                <Organization 
+                                    key={org.id}
+                                    name={org.name} 
+                                    profile_image={org.profile_image} 
+                                    owner_username={org.owner_username} 
+                                    id={org.id}
+                                    isMember={userOrgs.includes(org.id)}
+                                    refetchOrgs={fetchUserOrganizations}
+                                />
+                            ))
+                        ) : (
+                            <Text>No organizations found</Text>
+                        )}
                     </VStack>
                 </VStack>
 
@@ -72,11 +93,21 @@ const Search = () => {
                     <Heading>Users</Heading>
                     <VStack w='95%' maxW='500px' alignItems='center' gap='10px'>
                         <Text>{searchValue}</Text>
-                        {
-                            users.map((user) => {
-                                return <UserProfile username={user.username} profile_image={user.profile_image} first_name={user.first_name} last_name={user.last_name} />
-                            })
-                        }
+                        {loading ? (
+                            <Text>Loading...</Text>
+                        ) : users.length > 0 ? (
+                            users.map((user) => (
+                                <UserProfile 
+                                    key={user.username}
+                                    username={user.username} 
+                                    profile_image={user.profile_image} 
+                                    first_name={user.first_name} 
+                                    last_name={user.last_name} 
+                                />
+                            ))
+                        ) : (
+                            <Text>No users found</Text>
+                        )}
                     </VStack>
                 </VStack>
             </HStack>
@@ -85,15 +116,14 @@ const Search = () => {
 }
 
 const UserProfile = ({ username, profile_image, first_name, last_name }) => {
-
-    const nav = useNavigate()
+    const nav = useNavigate();
 
     const handleNav = () => {
-        nav(`/${username}`)
+        nav(`/${username}`);
     }
 
     return (
-        <HStack onClick={handleNav} p='10px' margin='10px' width='100%' minWidth='400px' border={'1px solid'} borderColor={'gray.400'} borderRadius={'8px'}>
+        <HStack onClick={handleNav} p='10px' margin='10px' width='100%' minWidth='400px' border={'1px solid'} borderColor={'gray.400'} borderRadius={'8px'} cursor="pointer">
             <Box boxSize='60px' border='1px solid' borderColor='gray.700' bg='white' borderRadius='full' overflow='hidden'>
                 <Image src={`${SERVER_URL}${profile_image}`} boxSize='100%' objectFit='cover' />
             </Box>
@@ -105,23 +135,103 @@ const UserProfile = ({ username, profile_image, first_name, last_name }) => {
     )
 }
 
-const Organization = ({ name, profile_image, owner, id }) => {
-
-    const nav = useNavigate()
+const Organization = ({ name, profile_image, owner_username, id, isMember, refetchOrgs }) => {
+    const nav = useNavigate();
+    const toast = useToast();
+    const [joining, setJoining] = useState(false);
+    const [isLocalMember, setIsLocalMember] = useState(isMember);
 
     const handleNav = () => {
-        nav(`/organization/${id}`)
+        nav(`/organization/${id}`);
+    }
+
+    const handleJoin = async (e) => {
+        e.stopPropagation(); // Prevent navigation when clicking the button
+        
+        if (isLocalMember) return; // Already a member
+        
+        setJoining(true);
+        try {
+            const response = await joinOrganization(id);
+            
+            if (response.success) {
+                toast({
+                    title: "Join request sent",
+                    description: "Your request to join this organization has been sent",
+                    status: "success",
+                    duration: 3000,
+                    isClosable: true,
+                });
+                
+                // Update local state
+                setIsLocalMember(true);
+                
+                // Refetch user's organizations to update the parent component's state
+                if (refetchOrgs) refetchOrgs();
+            } else {
+                // Handle "already requested" or "already a member" responses
+                if (response.error) {
+                    toast({
+                        title: "Note",
+                        description: response.error,
+                        status: "info",
+                        duration: 3000,
+                        isClosable: true,
+                    });
+                    
+                    // If already a member, update local state
+                    if (response.error === "Already a member") {
+                        setIsLocalMember(true);
+                    }
+                }
+            }
+        } catch (error) {
+            toast({
+                title: "Error",
+                description: "Could not process your join request",
+                status: "error",
+                duration: 3000,
+                isClosable: true,
+            });
+        } finally {
+            setJoining(false);
+        }
     }
 
     return (
-        <HStack onClick={handleNav} p='10px' margin='10px' width='100%' minWidth='400px' border={'1px solid'} borderColor={'gray.400'} borderRadius={'8px'}>
-            <Box boxSize='60px' border='1px solid' borderColor='gray.700' bg='white' borderRadius='full' overflow='hidden'>
-                <Image src={`${SERVER_URL}${profile_image}`} boxSize='100%' objectFit='cover' />
-            </Box>
-            <VStack alignItems={'left'} gap={''} marginBottom={'10px'}>
-                <Heading size={'h2'}>@{name}</Heading>
-                <Text fontSize={'12px'}>Owner: {owner}</Text>
-            </VStack>
+        <HStack p='10px' margin='10px' width='100%' minWidth='400px' border={'1px solid'} borderColor={'gray.400'} borderRadius={'8px'}>
+            <Flex width="100%" onClick={handleNav} cursor="pointer">
+                <Box boxSize='60px' border='1px solid' borderColor='gray.700' bg='white' borderRadius='full' overflow='hidden'>
+                    <Image src={`${SERVER_URL}${profile_image}`} boxSize='100%' objectFit='cover' />
+                </Box>
+                <VStack alignItems={'left'} gap={''} marginLeft="10px" marginBottom={'10px'} flex="1">
+                    <Heading size={'h2'}>@{name}</Heading>
+                    <Text fontSize={'12px'}>Owner: {owner_username}</Text>
+                </VStack>
+            </Flex>
+            
+            {!isLocalMember && (
+                <Button 
+                    onClick={handleJoin} 
+                    colorScheme="blue" 
+                    size="sm"
+                    isLoading={joining}
+                    loadingText="Joining"
+                >
+                    Join
+                </Button>
+            )}
+            
+            {isLocalMember && (
+                <Button 
+                    colorScheme="green" 
+                    size="sm" 
+                    variant="outline"
+                    onClick={handleNav}
+                >
+                    View
+                </Button>
+            )}
         </HStack>
     )
 }

@@ -8,24 +8,66 @@ const api = axios.create({
     withCredentials: true
 })
 
+// Simple token refresh tracking
+let isRefreshing = false;
+let lastRefreshTime = 0;
+const REFRESH_COOLDOWN = 5000; // 5 seconds between refresh attempts
+
 //If login credentials timeout while active, call new refresh_token
 api.interceptors.response.use(
     (response) => response,
     async error => {
         const original_request = error.config
 
+        // Only handle 401 unauthorized errors for refresh
         if (error.response?.status === 401 && !original_request._retry) {
             original_request._retry = true;
 
+            // Check if we're within cooldown period
+            const now = Date.now();
+            if (now - lastRefreshTime < REFRESH_COOLDOWN) {
+                console.log("Token refresh on cooldown, skipping");
+                return Promise.reject(error);
+            }
+
+            // Check if already refreshing
+            if (isRefreshing) {
+                console.log("Already refreshing token, skipping duplicate attempt");
+                return Promise.reject(error);
+            }
+
             try {
-                await refresh_token();
-                return api(original_request);
+                isRefreshing = true;
+                lastRefreshTime = now;
+
+                const response = await api.post('/token/refresh/');
+
+                if (response.data.success) {
+                    // Try original request again
+                    isRefreshing = false;
+                    return api(original_request);
+                } else {
+                    // Refresh failed
+                    isRefreshing = false;
+                    window.location.href = '/login';
+                    return Promise.reject(error);
+                }
             } catch (refreshError) {
-                window.location.href = '/login'
-                return Promise.reject(refreshError)
+                isRefreshing = false;
+
+                // Check for rate limiting (429)
+                if (refreshError.response?.status === 429) {
+                    console.log("Rate limited on token refresh, will retry later");
+                    return Promise.reject(error);
+                }
+
+                // Any other error during refresh should redirect to login
+                console.log("Failed to refresh token:", refreshError);
+                window.location.href = '/login';
+                return Promise.reject(refreshError);
             }
         }
-        return Promise.reject(error)
+        return Promise.reject(error);
     }
 )
 
@@ -34,7 +76,7 @@ export const get_user_profile_data = async (username) => {
     return response.data
 }
 
-const refresh_token = async () => {
+export const refresh_token = async () => {
     const response = await api.post('/token/refresh/');
     return response.data
 }

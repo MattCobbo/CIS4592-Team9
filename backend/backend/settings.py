@@ -65,6 +65,7 @@ REST_FRAMEWORK = {
     ],
     "DEFAULT_THROTTLE_RATES": {
         'login': '4/minute',
+        'token_refresh': '5/minute',  # For TokenRefreshRateThrottle
     },
 }
 
