@@ -154,41 +154,29 @@ const Organization = ({ name, profile_image, owner_username, id, isMember, refet
         try {
             const response = await joinOrganization(id);
             
-            if (response.success) {
-                toast({
-                    title: "Join request sent",
-                    description: "Your request to join this organization has been sent",
-                    status: "success",
-                    duration: 3000,
-                    isClosable: true,
-                });
-                
-                // Update local state
-                setIsLocalMember(true);
-                
-                // Refetch user's organizations to update the parent component's state
-                if (refetchOrgs) refetchOrgs();
-            } else {
-                // Handle "already requested" or "already a member" responses
-                if (response.error) {
-                    toast({
-                        title: "Note",
-                        description: response.error,
-                        status: "info",
-                        duration: 3000,
-                        isClosable: true,
-                    });
-                    
-                    // If already a member, update local state
-                    if (response.error === "Already a member") {
-                        setIsLocalMember(true);
-                    }
-                }
-            }
+            toast({
+                title: "Success",
+                description: "Your request to join this organization has been sent",
+                status: "success",
+                duration: 3000,
+                isClosable: true,
+            });
+            
+            // Update local state
+            setIsLocalMember(true);
+            
+            // Refetch user's organizations to update the parent component's state
+            if (refetchOrgs) refetchOrgs();
+            
         } catch (error) {
+            console.error("Join error:", error);
+            
+            // Show the specific error message if available
+            const errorMessage = error.response?.data?.error || "Could not process your join request";
+            
             toast({
                 title: "Error",
-                description: "Could not process your join request",
+                description: errorMessage,
                 status: "error",
                 duration: 3000,
                 isClosable: true,

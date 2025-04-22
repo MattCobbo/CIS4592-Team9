@@ -32,7 +32,7 @@ urlpatterns = [
     # Organization Routes
     path("organization/create/", create_organization),
     path("organization/join/<int:org_id>/", request_to_join_organization),
-    path("organization/accept/<int:org_id>/<int:user_id>/", accept_join_request),
+    path("organization/accept/<int:org_id>/<str:user_id>/", accept_join_request),
     path("organization/posts/<int:org_id>/", get_organization_posts),
     path("organization/<int:org_id>/", get_organization),
     path("create_org_post/", create_org_post),

@@ -31,4 +31,16 @@ class TokenRefreshRateThrottle(SimpleRateThrottle):
                 'scope': self.scope,
                 'ident': ident
             }
+        return None
+    
+class OrganizationJoinThrottle(SimpleRateThrottle):
+    scope = 'organization_join'
+    
+    def get_cache_key(self, request, view):
+        if request.path.startswith('/api/organization/join/') and request.method == 'POST':
+            # Use username instead of IP for more granular control
+            return self.cache_format % {
+                'scope': self.scope,
+                'ident': request.user.username
+            }
         return None  

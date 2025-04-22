@@ -154,8 +154,14 @@ export const getOrganization = async (org_id) => {
 };
 
 export const joinOrganization = async (org_id) => {
-    const response = await api.post(`/organization/join/${org_id}/`);
-    return response.data;
+    try {
+        const response = await api.post(`/organization/join/${org_id}/`);
+        return response.data;
+    } catch (error) {
+        // Properly handle errors and rethrow them for component handling
+        console.error("API Error:", error.response?.data || error.message);
+        throw error;
+    }
 };
 
 export const getOrganizationPosts = async (org_id) => {
