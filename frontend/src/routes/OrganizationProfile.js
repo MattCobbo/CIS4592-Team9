@@ -1,5 +1,5 @@
 import { useDisclosure, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, ModalFooter, Input, Textarea, useToast } from "@chakra-ui/react";
-import { createEvent } from "../api/endpoints";
+import { createEvent, updateRSVP } from "../api/endpoints";
 import { Flex, Text, VStack, Box, Heading, HStack, Image, Button, Spacer, Divider } from "@chakra-ui/react";
 import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
@@ -188,35 +188,94 @@ const OrganizationPosts = ({ posts }) => {
     );
 };
 
-const OrganizationEvents = ({ events }) => (
-    <Flex direction="column" gap="20px" pb="60px" w="100%">
-        {events.length > 0 ? (
-            events.map((ev) => (
-                <Box
-                    key={ev.id}
-                    p="4"
-                    borderWidth="1px"
-                    borderRadius="md"
-                    bg="purple.50"
-                    w="100%"
-                >
-                    <Heading size="md" mb="2">
-                        {ev.title}
-                    </Heading>
-                    <Text fontSize="sm" color="gray.600" mb="2">
-                        {new Date(ev.starts_at).toLocaleDateString()}
-                    </Text>
-                    <Text>{ev.description}</Text>
-                    <Text mt="2" fontSize="xs" color="gray.500">
-                        Created by {ev.creator_username}
-                    </Text>
-                </Box>
-            ))
-        ) : (
-            <Text>No events scheduled.</Text>
-        )}
-    </Flex>
-);
+const OrganizationEvents = ({ events }) => {
+    const toast = useToast();
+    const currentUser =
+        JSON.parse(localStorage.getItem("userData") || "{}").username || "";
+
+    const [selected, setSelected] = useState({});
+
+    useEffect(() => {
+        const map = {};
+        events.forEach((ev) => {
+            const me = ev.attendance?.find(
+                (a) => a.username === currentUser
+            );
+            if (me) map[ev.id] = me.rsvp;
+        });
+        setSelected(map);
+    }, [events, currentUser]);
+
+    const handleRSVP = async (eventId, rsvp) => {
+        try {
+            await updateRSVP(eventId, rsvp);
+            /* local‑UI update */
+            setSelected((prev) => ({ ...prev, [eventId]: rsvp }));
+            toast({ title: "RSVP updated", status: "success", duration: 1500 });
+        } catch {
+            toast({ title: "Could not update RSVP", status: "error" });
+        }
+    };
+
+    return (
+        <Flex direction="column" gap="20px" pb="60px" w="100%">
+            {events.length > 0 ? (
+                events.map((ev) => (
+                    <Box
+                        key={ev.id}
+                        p="4"
+                        borderWidth="1px"
+                        borderRadius="md"
+                        bg="purple.50"
+                        w="100%"
+                    >
+                        <Heading size="md" mb="2">
+                            {ev.title}
+                        </Heading>
+
+                        <Text fontSize="sm" color="gray.600">
+                            {new Date(ev.starts_at).toLocaleDateString()}
+                        </Text>
+
+                        <Text my="2">{ev.description}</Text>
+
+                        <HStack mt="2">
+                            <Button
+                                size="sm"
+                                colorScheme="green"
+                                variant={selected[ev.id] === "Y" ? "solid" : "outline"}
+                                onClick={() => handleRSVP(ev.id, "Y")}
+                            >
+                                Going
+                            </Button>
+                            <Button
+                                size="sm"
+                                colorScheme="red"
+                                variant={selected[ev.id] === "N" ? "solid" : "outline"}
+                                onClick={() => handleRSVP(ev.id, "N")}
+                            >
+                                Not Going
+                            </Button>
+                            <Button
+                                size="sm"
+                                colorScheme="gray"
+                                variant={selected[ev.id] === "M" ? "solid" : "outline"}
+                                onClick={() => handleRSVP(ev.id, "M")}
+                            >
+                                Maybe
+                            </Button>
+                        </HStack>
+                        <Text mt="2" fontSize="xs" color="gray.500">
+                            Created by {ev.creator_username}
+                        </Text>
+                    </Box>
+                ))
+            ) : (
+                <Text>No events scheduled.</Text>
+            )}
+        </Flex>
+    );
+};
 
 
 const CreateEvent = ({ orgId, setOrgPosts }) => {
