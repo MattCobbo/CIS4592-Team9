@@ -1,7 +1,9 @@
-import { Flex, Text, VStack, Box, Heading, HStack, Image, Button, Spacer } from "@chakra-ui/react";
+import { useDisclosure, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, ModalFooter, Input, Textarea, useToast } from "@chakra-ui/react";
+import { createEvent } from "../api/endpoints";
+import { Flex, Text, VStack, Box, Heading, HStack, Image, Button, Spacer, Divider } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { getOrganization, getOrganizationPosts, create_org_post } from "../api/endpoints";
+import { getOrganization, getOrganizationPosts, getOrganizationEvents, create_org_post } from "../api/endpoints";
 import { SERVER_URL } from "../constants/constants";
 import Post from "../components/post";
 
@@ -9,6 +11,7 @@ const OrganizationProfile = () => {
     const { orgId } = useParams();
     const [organization, setOrganization] = useState(null);
     const [posts, setPosts] = useState([]);
+    const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -33,8 +36,18 @@ const OrganizationProfile = () => {
             }
         };
 
+        const fetchEvents = async () => {
+            try {
+                const orgEvents = await getOrganizationEvents(orgId);
+                setEvents(orgEvents);
+            } catch {
+                setError("Error getting events.");
+            }
+        };
+
         fetchOrganizationData();
         fetchPosts();
+        fetchEvents();
     }, [orgId]);
 
     if (loading) return <Text>Loading...</Text>;
@@ -42,17 +55,37 @@ const OrganizationProfile = () => {
 
     return (
         <Flex w="100%" justifyContent="center">
-            <VStack w="75%">
-                <Box w="100%" mt="40px">
-                    <OrganizationDetails organization={organization} />
-                </Box>
-                <Box w="100%" mt="40px">
-                    <CreateOrgPost orgId={orgId} setPosts={setPosts} posts={posts} />
-                </Box>
-                <Box w="100%" mt="40px">
-                    <OrganizationPosts posts={posts} />
-                </Box>
-            </VStack>
+            {/* 🔄 TWO‑COLUMN LAYOUT: posts (left) | events (right) */}
+            <HStack w="90%" alignItems="flex-start" spacing="60px">
+                <VStack w="55%">
+                    <Box w="100%" mt="40px">
+                        <OrganizationDetails organization={organization} />
+                    </Box>
+
+                    <Box w="100%" mt="40px">
+                        <CreateOrgPost
+                            orgId={orgId}
+                            setPosts={setPosts}
+                            posts={posts}
+                        />
+                    </Box>
+
+                    {organization.is_owner && (<Box w="100%">
+                        <CreateEvent orgId={orgId} />
+                    </Box>
+                    )}
+
+                    <Box w="100%" mt="40px">
+                        <OrganizationPosts posts={posts} />
+                    </Box>
+                </VStack>
+
+                <VStack w="45%" alignItems="flex-start" spacing="30px" mt="40px">
+                    <Heading size="lg">Upcoming Events</Heading>
+                    <Divider />
+                    <OrganizationEvents events={events} />
+                </VStack>
+            </HStack>
         </Flex>
     );
 };
@@ -138,6 +171,91 @@ const OrganizationPosts = ({ posts }) => {
                 <Text>No posts yet.</Text>
             )}
         </Flex>
+    );
+};
+
+const OrganizationEvents = ({ events }) => (
+    <Flex direction="column" gap="20px" pb="60px" w="100%">
+        {events.length > 0 ? (
+            events.map((ev) => (
+                <Box
+                    key={ev.id}
+                    p="4"
+                    borderWidth="1px"
+                    borderRadius="md"
+                    bg="purple.50"
+                    w="100%"
+                >
+                    <Heading size="md" mb="2">
+                        {ev.title}
+                    </Heading>
+                    <Text fontSize="sm" color="gray.600" mb="2">
+                        {new Date(ev.starts_at).toLocaleDateString()}
+                    </Text>
+                    <Text>{ev.description}</Text>
+                    <Text mt="2" fontSize="xs" color="gray.500">
+                        Created by {ev.creator_username}
+                    </Text>
+                </Box>
+            ))
+        ) : (
+            <Text>No events scheduled.</Text>
+        )}
+    </Flex>
+);
+
+
+const CreateEvent = ({ orgId, setOrgPosts }) => {
+    const { isOpen, onOpen, onClose } = useDisclosure();
+    const toast = useToast();
+
+    const [title, setTitle] = useState("");
+    const [description, setDescription] = useState("");
+    const [startsAt, setStartsAt] = useState("");
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        const dateParts = startsAt.split("/");
+        if (dateParts.length !== 3) {
+            toast({ title: "Invalid date", status: "error" });
+            return;
+        }
+
+        const [month, day, year] = dateParts;
+        const isoDate = new Date(`${year}-${month}-${day}T00:00:00`).toISOString();
+
+        try {
+            await createEvent({ organization_id: orgId, title, description, starts_at: isoDate });
+            toast({ title: "Event created!", status: "success" });
+            onClose();
+        } catch (err) {
+            toast({ title: "Error creating event", status: "error" });
+        }
+    };
+
+    return (
+        <>
+            <Button onClick={onOpen} colorScheme="purple">+ Create Event</Button>
+            <Modal isOpen={isOpen} onClose={onClose}>
+                <ModalOverlay />
+                <ModalContent>
+                    <ModalHeader>Create Event</ModalHeader>
+                    <ModalCloseButton />
+                    <form onSubmit={handleSubmit}>
+                        <ModalBody>
+                            <Input placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} mb={3} />
+                            <Textarea placeholder="Description" value={description} onChange={(e) => setDescription(e.target.value)} mb={3} />
+                            <Input placeholder="MM/DD/YYYY" value={startsAt} onChange={(e) => setStartsAt(e.target.value)} />
+                        </ModalBody>
+                        <ModalFooter>
+                            <Button type="submit" colorScheme="blue" mr={3}>Submit</Button>
+                            <Button onClick={onClose}>Cancel</Button>
+                        </ModalFooter>
+                    </form>
+                </ModalContent>
+            </Modal>
+        </>
     );
 };
 
