@@ -7,7 +7,8 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework import status
-from .models import MyUser, Post, Organization, orgPost
+from rest_framework import generics, permissions
+from .models import MyUser, Post, Organization, orgPost, Event, EventAttendance
 from .serializers import (
     MyUserProfileSerializer,
     PostSerializer,
@@ -15,6 +16,8 @@ from .serializers import (
     UserSerializer,
     OrganizationSerializer,
     OrgPostSerializer,
+    EventSerializer,
+    EventAttendanceSerializer,
 )
 
 
@@ -463,3 +466,55 @@ def search_organizations(request):
     organizations = Organization.objects.filter(name__icontains=query)
     serializer = OrganizationSerializer(organizations, many=True)
     return Response(serializer.data)
+
+class IsOrgOwner(permissions.BasePermission):
+    """Allow only the organization owner to POST."""
+    def has_permission(self, request, view):
+        if request.method != "POST":
+            return True
+        org_id = request.data.get("organization_id")
+        try:
+            org = Organization.objects.get(id=org_id)
+        except Organization.DoesNotExist:
+            return False
+        return org.owner == request.user
+
+class EventListCreateView(generics.ListCreateAPIView):
+    """
+    GET /organization/<org_id>/events/   – list events visible to members  
+    POST (owner only)                    – create new event
+    """
+    serializer_class = EventSerializer
+    permission_classes = [permissions.IsAuthenticated, IsOrgOwner]
+
+    def get_queryset(self):
+        org_id = self.kwargs["org_id"]
+        return Event.objects.filter(organization_id=org_id).order_by("starts_at")
+
+    def perform_create(self, serializer):
+        serializer.save(creator=self.request.user)
+
+class RSVPUpdateView(generics.UpdateAPIView):
+    """
+    PATCH /events/<event_id>/rsvp/  body: {"rsvp": "Y" | "N" | "M"}
+    """
+    serializer_class = EventSerializer  # not really used for PATCH
+    permission_classes = [permissions.IsAuthenticated]
+
+    def update(self, request, *args, **kwargs):
+        event = Event.objects.get(id=kwargs["event_id"])
+        if request.user not in event.organization.members.all():
+            return Response(
+                {"error": "Not a member of this organization"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        rsvp_val = request.data.get("rsvp", Event.RSVP.MAYBE)
+        attendance, _ = EventAttendance.objects.get_or_create(
+            event=event, user=request.user
+        )
+        attendance.rsvp = rsvp_val
+        attendance.save()
+        return Response(
+            {"success": True, "new_rsvp": rsvp_val},
+            status=status.HTTP_200_OK,
+        )
