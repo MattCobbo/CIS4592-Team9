@@ -149,6 +149,11 @@ export const getOrganizationEvents = async (org_id) => {
     return response.data;      // array of EventSerializer objects
 };
 
+export const updateRSVP = async (event_id, rsvp) => {
+    const response = await api.patch(`/events/${event_id}/rsvp/`, { rsvp });
+    return response.data;
+};
+
 export const search_organizations = async (search) => {
     const response = await api.get(`/search_organizations/?query=${search}`, { timeout: 3000 })
     return response.data
