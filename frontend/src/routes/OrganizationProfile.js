@@ -6,6 +6,7 @@ import { useParams } from "react-router-dom";
 import { getOrganization, getOrganizationPosts, getOrganizationEvents, create_org_post, joinOrganization } from "../api/endpoints";
 import { SERVER_URL } from "../constants/constants";
 import Post from "../components/post";
+import PendingRequests from "../components/PendingRequests";
 
 const OrganizationProfile = () => {
     const { orgId } = useParams();
@@ -15,18 +16,18 @@ const OrganizationProfile = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    useEffect(() => {
-        const fetchOrganizationData = async () => {
-            try {
-                const data = await getOrganization(orgId);
-                setOrganization(data);
-            } catch {
-                setError("Could not load organization.");
-            } finally {
-                setLoading(false);
-            }
-        };
+    const fetchOrganizationData = async () => {
+        try {
+            const data = await getOrganization(orgId);
+            setOrganization(data);
+        } catch {
+            setError("Could not load organization.");
+        } finally {
+            setLoading(false);
+        }
+    };
 
+    useEffect(() => {
         const fetchPosts = async () => {
             try {
                 const orgPosts = await getOrganizationPosts(orgId);
@@ -61,6 +62,15 @@ const OrganizationProfile = () => {
                     <Box w="100%" mt="40px">
                         <OrganizationDetails organization={organization} />
                     </Box>
+
+                    {organization.is_owner && (
+                        <Box w="100%" mt="20px">
+                            <PendingRequests
+                                orgId={orgId}
+                                onUpdateMembers={fetchOrganizationData}
+                            />
+                        </Box>
+                    )}
 
                     <Box w="100%" mt="40px">
                         <CreateOrgPost

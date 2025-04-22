@@ -66,6 +66,7 @@ REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_RATES": {
         'login': '4/minute',
         'token_refresh': '5/minute',  # For TokenRefreshRateThrottle
+        'organization_join': '20/hour',  # Allow 20 join requests per hour per user
     },
 }
 

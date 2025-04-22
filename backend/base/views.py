@@ -1,9 +1,11 @@
+import logging
+
 from django.http import HttpResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from django.views.decorators.csrf import ensure_csrf_cookie
 from rest_framework import generics, permissions, status
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, throttle_classes
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -21,8 +23,9 @@ from .serializers import (
     UserRegisterSerializer,
     UserSerializer,
 )
-from .throttling import TokenRefreshRateThrottle
+from .throttling import OrganizationJoinThrottle, TokenRefreshRateThrottle
 
+logger = logging.getLogger(__name__)
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
@@ -336,25 +339,36 @@ def create_organization(request):
     serializer = OrganizationSerializer(org)
     return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
+@throttle_classes([OrganizationJoinThrottle])
 def request_to_join_organization(request, org_id):
     """Allows users to request to join an organization."""
     try:
         org = Organization.objects.get(id=org_id)
         user = request.user
+        
+        logger.info(f"Join request: User {user.username} requesting to join org {org.name} (ID: {org_id})")
 
         if user in org.members.all():
+            logger.info(f"User {user.username} is already a member of {org.name}")
             return Response({"error": "Already a member"}, status=status.HTTP_400_BAD_REQUEST)
 
         if user in org.pending_requests.all():
+            logger.info(f"User {user.username} already has a pending request to join {org.name}")
             return Response({"error": "Already requested"}, status=status.HTTP_400_BAD_REQUEST)
 
         org.pending_requests.add(user)
+        logger.info(f"Added user {user.username} to pending requests for {org.name}")
         return Response({"success": "Join request sent"}, status=status.HTTP_200_OK)
 
     except Organization.DoesNotExist:
+        logger.error(f"Organization with ID {org_id} not found")
         return Response({"error": "Organization not found"}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        logger.error(f"Error processing join request: {str(e)}")
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(["POST"])
@@ -367,7 +381,8 @@ def accept_join_request(request, org_id, user_id):
         if request.user != org.owner:
             return Response({"error": "Only owner can accept requests"}, status=status.HTTP_403_FORBIDDEN)
 
-        user = MyUser.objects.get(id=user_id)
+        # Use get_object_or_404 for cleaner error handling
+        user = MyUser.objects.get(username=user_id)  # Changed from id to username
 
         if user not in org.pending_requests.all():
             return Response({"error": "No pending request from this user"}, status=status.HTTP_400_BAD_REQUEST)
@@ -378,6 +393,8 @@ def accept_join_request(request, org_id, user_id):
 
     except Organization.DoesNotExist:
         return Response({"error": "Organization not found"}, status=status.HTTP_404_NOT_FOUND)
+    except MyUser.DoesNotExist:
+        return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
 
 @api_view(["GET"])
