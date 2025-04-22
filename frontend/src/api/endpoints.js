@@ -139,6 +139,16 @@ export const create_org_post = async ({ description, organization_id }) => {
     return response.data;
 };
 
+export const createEvent = async ({ organization_id, title, description, starts_at, }) => {
+    const response = await api.post(`/organization/${organization_id}/events/`, { organization_id, title, description, starts_at, });
+    return response.data;
+};
+
+export const getOrganizationEvents = async (org_id) => {
+    const response = await api.get(`/organization/${org_id}/events/`);
+    return response.data;      // array of EventSerializer objects
+};
+
 export const search_organizations = async (search) => {
     const response = await api.get(`/search_organizations/?query=${search}`, { timeout: 3000 })
     return response.data
