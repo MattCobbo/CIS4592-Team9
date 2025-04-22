@@ -1,12 +1,11 @@
 import { useDisclosure, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, ModalFooter, Input, Textarea, useToast } from "@chakra-ui/react";
 import { createEvent, updateRSVP } from "../api/endpoints";
 import { Flex, Text, VStack, Box, Heading, HStack, Image, Button, Spacer, Divider } from "@chakra-ui/react";
-import { useEffect, useState, useRef, useRef } from "react";
-import { useParams, useNavigate, useNavigate } from "react-router-dom";
+import { useEffect, useState, useRef } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { getOrganization, getOrganizationPosts, getOrganizationEvents, create_org_post, joinOrganization } from "../api/endpoints";
 import { SERVER_URL } from "../constants/constants";
 import Post from "../components/post";
-import PendingRequests from "../components/PendingRequests";
 
 const OrganizationProfile = () => {
     const { orgId } = useParams();
@@ -16,18 +15,18 @@ const OrganizationProfile = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    const fetchOrganizationData = async () => {
-        try {
-            const data = await getOrganization(orgId);
-            setOrganization(data);
-        } catch {
-            setError("Could not load organization.");
-        } finally {
-            setLoading(false);
-        }
-    };
-
     useEffect(() => {
+        const fetchOrganizationData = async () => {
+            try {
+                const data = await getOrganization(orgId);
+                setOrganization(data);
+            } catch {
+                setError("Could not load organization.");
+            } finally {
+                setLoading(false);
+            }
+        };
+
         const fetchPosts = async () => {
             try {
                 const orgPosts = await getOrganizationPosts(orgId);
@@ -63,15 +62,6 @@ const OrganizationProfile = () => {
                         <OrganizationDetails organization={organization} />
                     </Box>
 
-                    {organization.is_owner && (
-                        <Box w="100%" mt="20px">
-                            <PendingRequests
-                                orgId={orgId}
-                                onUpdateMembers={fetchOrganizationData}
-                            />
-                        </Box>
-                    )}
-
                     <Box w="100%" mt="40px">
                         <CreateOrgPost
                             orgId={orgId}
@@ -96,17 +86,6 @@ const OrganizationProfile = () => {
                             <OrganizationDiscordWidget />
                         </Box>
                     </HStack>
-
-                    <HStack w="100%" spacing="40px" alignItems="flex-start" justifyContent="center" mt="40px">
-                        <Box w="100%" maxW="640px">
-                            <OrganizationPosts posts={posts} />
-                        </Box>
-
-                        {/* Discord Widget */}
-                        <Box w="100%" maxW="640px">
-                            <OrganizationDiscordWidget />
-                        </Box>
-                    </HStack>
                 </VStack>
 
                 <VStack w="45%" alignItems="flex-start" spacing="30px" mt="40px">
@@ -120,12 +99,6 @@ const OrganizationProfile = () => {
 };
 
 const OrganizationDetails = ({ organization }) => {
-    const navigate = useNavigate();
-
-    const handleEditOrganization = () => {
-        navigate(`/organization/${organization.id}/edit`);
-    };
-
     const toast = useToast();
     const [joining, setJoining] = useState(false);
     const [hasPendingRequest, setHasPendingRequest] = useState(false);
@@ -195,32 +168,7 @@ const OrganizationDetails = ({ organization }) => {
                         <Text>Members</Text>
                         <Text>{organization.member_count}</Text>
                     </VStack>
-
-                    {organization.is_owner && (
-                        <Button w="100%" onClick={handleEditOrganization} colorScheme="blue" onClick={handleEditOrganization}>Edit Organization</Button>
-                    )}
-
-                    {!organization.is_owner && !isMember && !hasPendingRequest && (
-                        <Button
-                            w="100%"
-                            colorScheme="green"
-                            onClick={handleJoinRequest}
-                            isLoading={joining}
-                            loadingText="Sending Request"
-                        >
-                            Join Organization
-                        </Button>
-                    )}
-
-                    {!organization.is_owner && !isMember && hasPendingRequest && (
-                        <Button
-                            w="100%"
-                            colorScheme="yellow"
-                            isDisabled={true}
-                        >
-                            Request Pending
-                        </Button>
-                    )}
+                    {organization.is_owner && <Button w="100%">Edit Organization</Button>}
                 </VStack>
             </HStack>
             <Text fontSize="18px">{organization.bio}</Text>
