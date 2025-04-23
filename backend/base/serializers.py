@@ -1,3 +1,4 @@
+import re
 from rest_framework import serializers
 
 from .models import (
@@ -25,6 +26,27 @@ class UserRegisterSerializer(serializers.ModelSerializer):
             "last_name",
             "password"
         ]  # Firstname Lastname fields come from AbstractUser model
+
+    def validate_password(self, value):
+        """
+        Check password complexity requirements.
+        """
+        if len(value) < 8:
+            raise serializers.ValidationError("Password must be at least 8 characters.")
+        
+        if not re.search(r'[A-Z]', value):
+            raise serializers.ValidationError("Password must contain an uppercase letter.")
+            
+        if not re.search(r'[a-z]', value):
+            raise serializers.ValidationError("Password must contain a lowercase letter.")
+            
+        if not re.search(r'[0-9]', value):
+            raise serializers.ValidationError("Password must contain a number.")
+            
+        if not re.search(r'[!@#$%^&*()_+\-=\[\]{};\':"\\|,.<>\/?]', value):
+            raise serializers.ValidationError("Password must contain a special character.")
+            
+        return value
 
     def create(self, validated_data):
         user = MyUser(

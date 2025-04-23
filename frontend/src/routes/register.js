@@ -1,29 +1,93 @@
-import { Button, Flex, VStack, FormControl, FormLabel, Input, Heading, Text } from "@chakra-ui/react"
+import { Button, Flex, VStack, FormControl, FormLabel, Input, Heading, Text, FormErrorMessage, List, ListItem, Box } from "@chakra-ui/react"
 import { login, register } from "../api/endpoints"
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 
-const Register = () => {
+// Password complexity
+const validatePassword = (password) => {
+    const errors = [];
 
+    if (password.length < 8) {
+        errors.push("Password must be at least 8 characters");
+    }
+    if (!/[A-Z]/.test(password)) {
+        errors.push("Password must contain at least one uppercase letter");
+    }
+    if (!/[a-z]/.test(password)) {
+        errors.push("Password must contain at least one lowercase letter");
+    }
+    if (!/[0-9]/.test(password)) {
+        errors.push("Password must contain at least one number");
+    }
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+        errors.push("Password must contain at least one special character");
+    }
+
+    return errors;
+}
+
+// Password strength indicator 
+const PasswordStrengthMeter = ({ password }) => {
+    const getStrengthLevel = (password) => {
+        const errors = validatePassword(password);
+        if (errors.length === 0) return 100; // Strong
+        if (errors.length <= 2) return 70;   // Medium
+        if (errors.length <= 4) return 40;   // Weak
+        return 10; // Very weak
+    };
+
+    const strength = getStrengthLevel(password);
+    let color = "red.500";
+    if (strength >= 100) color = "green.500";
+    else if (strength >= 70) color = "yellow.500";
+    else if (strength >= 40) color = "orange.500";
+
+    return (
+        <Box mt={2}>
+            <Text fontSize="sm" mb={1}>Password Strength</Text>
+            <Box w="100%" bg="gray.200" h="8px" borderRadius="full">
+                <Box w={`${strength}%`} bg={color} h="100%" borderRadius="full" />
+            </Box>
+        </Box>
+    );
+};
+
+const Register = () => {
     const [username, setUsername] = useState('')
     const [email, setEmail] = useState('')
     const [firstName, setFirstName] = useState('')
     const [lastName, setLastName] = useState('')
     const [password, setPassword] = useState('')
     const [confirmPassword, setConfirmPassword] = useState('')
+    const [passwordErrors, setPasswordErrors] = useState([])
     const navigate = useNavigate();
 
+    const handlePasswordChange = (e) => {
+        const newPassword = e.target.value;
+        setPassword(newPassword);
+        setPasswordErrors(validatePassword(newPassword));
+    }
+
     const handleRegister = async () => {
-        if (password === confirmPassword) {
-            try {
-                await register(username, email, firstName, lastName, password);
-                alert('Created new account')
-                navigate('/login')
-            } catch {
-                alert('error registering new account')
-            }
-        } else {
-            alert('passwords do not match')
+        // First check password complexity
+        const errors = validatePassword(password);
+        if (errors.length > 0) {
+            setPasswordErrors(errors);
+            return;
+        }
+
+        // Then check if passwords match
+        if (password !== confirmPassword) {
+            alert('Passwords do not match');
+            return;
+        }
+
+        try {
+            await register(username, email, firstName, lastName, password);
+            alert('Created new account');
+            navigate('/login');
+        } catch {
+            alert('Error registering new account');
         }
     }
 
@@ -51,9 +115,19 @@ const Register = () => {
                     <FormLabel htmlFor='lastName'>Last Name</FormLabel>
                     <Input onChange={(e) => setLastName(e.target.value)} bg='white' type='text' />
                 </FormControl>
-                <FormControl>
+                <FormControl isInvalid={passwordErrors.length > 0}>
                     <FormLabel htmlFor='password'>Password</FormLabel>
-                    <Input onChange={(e) => setPassword(e.target.value)} bg='white' type='password' />
+                    <Input onChange={handlePasswordChange} bg='white' type='password' />
+                    <PasswordStrengthMeter password={password} />
+                    {passwordErrors.length > 0 && (
+                        <FormErrorMessage>
+                            <List spacing={1} styleType="disc" pl={4}>
+                                {passwordErrors.map((error, index) => (
+                                    <ListItem key={index}>{error}</ListItem>
+                                ))}
+                            </List>
+                        </FormErrorMessage>
+                    )}
                 </FormControl>
                 <FormControl>
                     <FormLabel htmlFor='confirmPassword'>Confirm Password</FormLabel>
