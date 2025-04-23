@@ -75,7 +75,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'name', 'bio', 'profile_image', 'created_at',
             'owner_username', 'members', 'pending_requests',
-            'member_count', 'is_owner'
+            'member_count', 'is_owner', 'discord_server', 'discord_channel'  # Added Discord fields
         ]
 
     def get_member_count(self, obj):

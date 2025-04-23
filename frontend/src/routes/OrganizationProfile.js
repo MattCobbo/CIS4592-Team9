@@ -93,7 +93,7 @@ const OrganizationProfile = () => {
 
                         {/* Discord Widget */}
                         <Box w="100%" maxW="640px">
-                            <OrganizationDiscordWidget />
+                            <OrganizationDiscordWidget organization={organization} />
                         </Box>
                     </HStack>
                 </VStack>
@@ -180,8 +180,8 @@ const OrganizationDetails = ({ organization }) => {
                     </VStack>
 
                     {organization.is_owner && (
-                        <Button 
-                            w="100%" 
+                        <Button
+                            w="100%"
                             colorScheme="blue"
                             onClick={() => navigate(`/organization/${organization.id}/edit`)}
                         >
@@ -424,17 +424,50 @@ const CreateEvent = ({ orgId, setOrgPosts }) => {
     );
 };
 
-const OrganizationDiscordWidget = () => {
+const OrganizationDiscordWidget = ({ organization }) => {
     const containerRef = useRef(null);
 
     useEffect(() => {
         if (!containerRef.current) return;
 
+        // Check if organization has discord_server and discord_channel
+        // Only proceed with rendering if organization has the required data
+        const hasDiscordConfig = organization &&
+            (organization.discord_server && organization.discord_server.trim() !== '') &&
+            (organization.discord_channel && organization.discord_channel.trim() !== '');
+
+        // Clear any existing content
         containerRef.current.innerHTML = "";
 
+        if (!hasDiscordConfig) {
+            // Display message if no Discord configuration
+            const message = document.createElement("div");
+            message.style.width = "100%";
+            message.style.height = "100%";
+            message.style.display = "flex";
+            message.style.justifyContent = "center";
+            message.style.alignItems = "center";
+            message.style.padding = "20px";
+            message.style.textAlign = "center";
+            message.style.color = "#718096";
+
+            if (organization.is_owner) {
+                message.textContent = "Configure Discord widget in organization settings";
+            } else {
+                message.textContent = "This organization has not configured their Discord widget";
+            }
+
+            containerRef.current.appendChild(message);
+            return;
+        }
+
+        const serverId = organization.discord_server;
+        const channelId = organization.discord_channel;
+
+        // Create WidgetBot 
         const widget = document.createElement("widgetbot");
-        widget.setAttribute("server", "1328070588882882580");
-        widget.setAttribute("channel", "1328070588882882587");
+        widget.setAttribute("server", serverId);
+        widget.setAttribute("channel", channelId);
         widget.setAttribute("width", "100%");
         widget.setAttribute("height", "100%");
 
@@ -444,7 +477,7 @@ const OrganizationDiscordWidget = () => {
 
         containerRef.current.appendChild(widget);
         containerRef.current.appendChild(script);
-    }, []);
+    }, [organization]);
 
     return (
         <Box

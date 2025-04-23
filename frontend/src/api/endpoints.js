@@ -144,10 +144,18 @@ export const createOrganization = async (name, bio) => {
 };
 
 export const updateOrganization = async (orgId, formData) => {
-    const response = await api.patch(`/organization/${orgId}/update/`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+    const response = await fetch(`${SERVER_URL}/organization/${orgId}/update/`, {
+        method: 'PATCH',
+        credentials: 'include',
+        body: formData
     });
-    return response.data;
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to update organization');
+    }
+
+    return await response.json();
 };
 
 export const getOrganizations = async () => {

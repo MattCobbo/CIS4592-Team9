@@ -371,6 +371,13 @@ def update_organization(request, org_id):
         
         if "bio" in request.data:
             org.bio = request.data["bio"]
+            
+        # Discord fields
+        if "discord_server" in request.data:
+            org.discord_server = request.data["discord_server"]
+            
+        if "discord_channel" in request.data:
+            org.discord_channel = request.data["discord_channel"]
         
         if request.FILES.get("profile_image"):
             # Delete old image if exists
