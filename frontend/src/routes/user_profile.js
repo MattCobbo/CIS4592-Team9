@@ -119,7 +119,7 @@ const UserDetails = ({ username }) => {
     );
 };
 
-const CreatePost = ({ username}) => {
+const CreatePost = ({ username }) => {
     const [loading, setLoading] = useState(true);
     const [isOwner, setIsOwner] = useState(false);
     const [newPostContent, setNewPostContent] = useState('');
@@ -209,27 +209,6 @@ const UserPosts = ({ username }) => {
         </Flex>
     )
 }
-/*
-const DiscordWidget = () => {
-    useEffect(() => {
-        const script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/npm/@widgetbot/html-embed';
-        script.async = true;
-        document.body.appendChild(script);
-    }, []);
-
-    return (
-        <div>
-            <widgetbot
-                server="1328070588882882580"
-                channel="1328070588882882587"
-                width="600"
-                height="600"
-            ></widgetbot>
-        </div>
-    );
-};
-*/
 
 const DiscordWidget = () => {
     const containerRef = useRef(null);
