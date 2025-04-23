@@ -180,7 +180,13 @@ const OrganizationDetails = ({ organization }) => {
                     </VStack>
 
                     {organization.is_owner && (
-                        <Button w="100%" colorScheme="blue">Edit Organization</Button>
+                        <Button 
+                            w="100%" 
+                            colorScheme="blue"
+                            onClick={() => navigate(`/organization/${organization.id}/edit`)}
+                        >
+                            Edit Organization
+                        </Button>
                     )}
 
                     {!organization.is_owner && !isMember && !hasPendingRequest && (

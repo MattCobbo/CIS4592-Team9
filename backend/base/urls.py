@@ -5,7 +5,7 @@ from django.urls import path
 from .views import (
     apply_for_job, get_user_profile_data, CustomTokenObtainPairView, CustomTokenRefreshView, job_applications, job_detail, jobs, my_jobs,
     register, authenticated, toggleFollow, get_users_posts, toggleLike,
-    create_post, get_posts, search_users, logout, update_user_details,
+    create_post, get_posts, search_users, logout, update_organization, update_user_details,
     create_organization, request_to_join_organization,
     accept_join_request, get_organization_posts, get_user_organizations,
     get_organization_feed, get_organization, create_org_post, search_organizations,
@@ -35,6 +35,7 @@ urlpatterns = [
     path("organization/accept/<int:org_id>/<str:user_id>/", accept_join_request),
     path("organization/posts/<int:org_id>/", get_organization_posts),
     path("organization/<int:org_id>/", get_organization),
+    path("organization/<int:org_id>/update/", update_organization),
     path("create_org_post/", create_org_post),
     path('login/', CustomTokenObtainPairView.as_view(), name='login'),
     path('search_organizations/', search_organizations),

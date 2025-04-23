@@ -1,4 +1,5 @@
 import logging
+import os
 
 from django.http import HttpResponse
 from django.utils.decorators import method_decorator
@@ -340,6 +341,66 @@ def create_organization(request):
 
     serializer = OrganizationSerializer(org)
     return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+@api_view(["PATCH"])
+@permission_classes([IsAuthenticated])
+def update_organization(request, org_id):
+    """Update an organization's details (owner only)."""
+    try:
+        org = Organization.objects.get(id=org_id)
+        
+        # Ensure the current user is the owner
+        if request.user != org.owner:
+            return Response(
+                {"error": "Only the organization owner can update details"}, 
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        # Check if new organization name already exists (unless it's the same org)
+        if "name" in request.data and request.data["name"] != org.name:
+            if Organization.objects.filter(name=request.data["name"]).exists():
+                return Response(
+                    {"error": "An organization with this name already exists"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        
+        # Update the organization fields
+        if "name" in request.data:
+            org.name = request.data["name"]
+        
+        if "bio" in request.data:
+            org.bio = request.data["bio"]
+        
+        if request.FILES.get("profile_image"):
+            # Delete old image if exists
+            if org.profile_image:
+                # Try to delete the old file
+                try:
+                    if os.path.isfile(org.profile_image.path):
+                        os.remove(org.profile_image.path)
+                except:
+                    pass  # If deletion fails, just continue
+            
+            org.profile_image = request.FILES["profile_image"]
+        
+        # Save the changes
+        org.save()
+        
+        # Return the updated organization
+        serializer = OrganizationSerializer(org, context={"request": request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    except Organization.DoesNotExist:
+        return Response(
+            {"error": "Organization not found"}, 
+            status=status.HTTP_404_NOT_FOUND
+        )
+    except Exception as e:
+        return Response(
+            {"error": f"Failed to update organization: {str(e)}"}, 
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
 
 @api_view(["POST"])

@@ -143,6 +143,13 @@ export const createOrganization = async (name, bio) => {
     return response.data;
 };
 
+export const updateOrganization = async (orgId, formData) => {
+    const response = await api.patch(`/organization/${orgId}/update/`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    return response.data;
+};
+
 export const getOrganizations = async () => {
     const response = await api.get('/organization/all/');
     return response.data;
@@ -234,7 +241,7 @@ export const getMyJobs = async () => {
 
 export const applyForJob = async (jobId, applicationData) => {
     console.log(`Applying for job ${jobId} with data:`, applicationData);
-    
+
     try {
         const response = await api.post(`/jobs/${jobId}/apply/`, applicationData);
         console.log("Application response:", response.data);
