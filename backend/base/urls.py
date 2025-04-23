@@ -9,7 +9,7 @@ from .views import (
     create_organization, request_to_join_organization,
     accept_join_request, get_organization_posts, get_user_organizations,
     get_organization_feed, get_organization, create_org_post, search_organizations,
-    EventListCreateView, RSVPUpdateView, IsOrgOwner
+    EventListCreateView, RSVPUpdateView, IsOrgOwner, check_username
 )
 
 urlpatterns = [
@@ -45,6 +45,7 @@ urlpatterns = [
     path('jobs/<int:job_id>/apply/', apply_for_job, name='apply-for-job'),
     path('my-jobs/', my_jobs, name='my-jobs'),
     path('jobs/<int:job_id>/applications/', job_applications, name='job-applications'),
+    path('check-username/', check_username, name='check-username'),
     ] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
 )

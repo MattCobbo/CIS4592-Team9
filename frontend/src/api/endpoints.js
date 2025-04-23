@@ -234,7 +234,7 @@ export const getMyJobs = async () => {
 
 export const applyForJob = async (jobId, applicationData) => {
     console.log(`Applying for job ${jobId} with data:`, applicationData);
-    
+
     try {
         const response = await api.post(`/jobs/${jobId}/apply/`, applicationData);
         console.log("Application response:", response.data);
@@ -249,3 +249,9 @@ export const getJobApplications = async (jobId) => {
     const response = await api.get(`/jobs/${jobId}/applications/`);
     return response.data;
 };
+
+
+export const check_username_availability = async (username) => {
+    const response = await api.get(`/check-username/?username=${encodeURIComponent(username)}`);
+    return response.data;
+}

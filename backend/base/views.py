@@ -26,6 +26,9 @@ from .serializers import (
     UserSerializer,
 )
 from .throttling import OrganizationJoinThrottle, TokenRefreshRateThrottle
+from django.contrib.auth import get_user_model
+from rest_framework.response import Response
+from rest_framework import status
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +41,14 @@ def authenticated(request):
 
 @api_view(["POST"])
 def register(request):
+    # First check if username already exists
+    username = request.data.get('username')
+    if MyUser.objects.filter(username=username).exists():
+        return Response(
+            {"error": "Username already exists. Please choose a different username."},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
     serializer = UserRegisterSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
@@ -281,7 +292,7 @@ def get_posts(request):
 @permission_classes([IsAuthenticated])
 def search_users(request):
     query = request.query_params.get('query', '')
-    users = MyUser.objects.filter(username__icontains=query)
+    users = MyUser.objects.filter(username__icontains(query))
     serializer = UserSerializer(users, many=True)
     return Response(serializer.data)
 
@@ -492,7 +503,7 @@ def create_org_post(request):
 @permission_classes([IsAuthenticated])
 def search_organizations(request):
     query = request.query_params.get('query', '')
-    organizations = Organization.objects.filter(name__icontains=query)
+    organizations = Organization.objects.filter(name__icontains(query))
     serializer = OrganizationSerializer(organizations, many=True)
     return Response(serializer.data)
 
@@ -673,3 +684,9 @@ class RSVPUpdateView(generics.UpdateAPIView):
             {"success": True, "new_rsvp": rsvp_val},
             status=status.HTTP_200_OK,
         )
+
+@api_view(['GET'])
+def check_username(request):
+    username = request.query_params.get('username', '')
+    exists = get_user_model().objects.filter(username=username).exists()
+    return Response({"available": not exists})
