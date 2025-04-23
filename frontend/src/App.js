@@ -16,6 +16,7 @@ import Settings from './routes/settings';
 import Organizations from './routes/Organizations';
 import CreateOrganization from './routes/CreateOrganization';
 import OrganizationProfile from './routes/OrganizationProfile';
+import JobBoard from './routes/JobBoard';
 
 import { AuthProvider } from './context/useAuth';
 
@@ -35,6 +36,7 @@ function App() {
             <Route element={<Layout><PrivateRoute><Organizations /></PrivateRoute></Layout>} path='/organizations' />
             <Route element={<Layout><PrivateRoute><CreateOrganization /></PrivateRoute></Layout>} path='/create-organization' />
             <Route element={<Layout><PrivateRoute><OrganizationProfile /></PrivateRoute></Layout>} path='/organization/:orgId' />
+            <Route element={<Layout><PrivateRoute><JobBoard /></PrivateRoute></Layout>} path='/jobs' />
           </Routes>
         </AuthProvider>
       </Router>

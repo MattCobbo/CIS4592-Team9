@@ -205,4 +205,47 @@ export const updateRSVP = async (event_id, rsvp) => {
 export const search_organizations = async (search) => {
     const response = await api.get(`/search_organizations/?query=${search}`, { timeout: 3000 })
     return response.data
-}
+};
+
+export const getJobs = async (page = 1) => {
+    const response = await api.get(`/jobs/?page=${page}`);
+    return response.data;
+};
+
+export const getJob = async (jobId) => {
+    const response = await api.get(`/jobs/${jobId}/`);
+    return response.data;
+};
+
+export const createJob = async (jobData) => {
+    const response = await api.post('/jobs/', jobData);
+    return response.data;
+};
+
+export const deleteJob = async (jobId) => {
+    const response = await api.delete(`/jobs/${jobId}/`);
+    return response.data;
+};
+
+export const getMyJobs = async () => {
+    const response = await api.get('/my-jobs/');
+    return response.data;
+};
+
+export const applyForJob = async (jobId, applicationData) => {
+    console.log(`Applying for job ${jobId} with data:`, applicationData);
+    
+    try {
+        const response = await api.post(`/jobs/${jobId}/apply/`, applicationData);
+        console.log("Application response:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("API error details:", error.response?.data);
+        throw error;
+    }
+};
+
+export const getJobApplications = async (jobId) => {
+    const response = await api.get(`/jobs/${jobId}/applications/`);
+    return response.data;
+};

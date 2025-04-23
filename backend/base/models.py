@@ -94,3 +94,28 @@ class EventAttendance(models.Model):
 
     class Meta:
         unique_together = ("event", "user")
+
+
+class Job(models.Model):
+    """Model for job postings on the platform."""
+    creator = models.ForeignKey(MyUser, on_delete=models.CASCADE, related_name='created_jobs')
+    title = models.CharField(max_length=120)
+    description = models.TextField()
+    pay = models.CharField(max_length=100)  # Using CharField for flexibility (allows ranges, hourly rates, etc.)
+    post_date = models.DateField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"{self.title} posted by {self.creator.username}"
+
+class JobApplication(models.Model):
+    """Model for applications to job postings."""
+    job = models.ForeignKey(Job, on_delete=models.CASCADE, related_name='applications')
+    applicant_name = models.CharField(max_length=100)
+    applicant_email = models.EmailField()
+    applicant_phone = models.CharField(max_length=20)
+    requested_pay = models.CharField(max_length=100, blank=True, null=True)
+    resume_text = models.TextField()
+    application_date = models.DateField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"Application from {self.applicant_name} for {self.job.title}"

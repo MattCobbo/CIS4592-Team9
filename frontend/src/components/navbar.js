@@ -2,7 +2,7 @@ import { Flex, HStack, Text, Input, InputGroup, InputRightElement } from "@chakr
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { IoPersonOutline, IoHomeOutline, IoSearchCircle, IoSettingsSharp } from "react-icons/io5"
+import { IoPersonOutline, IoHomeOutline, IoSearchCircle, IoSettingsSharp, IoBriefcaseOutline } from "react-icons/io5";
 
 const Navbar = () => {
     const [searchValue, setSearchValue] = useState('');
@@ -44,8 +44,16 @@ const Navbar = () => {
                     {/* Existing links */}
                     <Text onClick={() => handleNavigate('about')}>About.us</Text>
 
-                    {/* Add new Organizations link here */}
+                    {/* Organizations link */}
                     <Text onClick={() => handleNavigate('organizations')}>Organizations</Text>
+
+                    {/* New Job Board link */}
+                    <Text onClick={() => handleNavigate('jobs')}>
+                        <HStack spacing={1}>
+                            <IoBriefcaseOutline size='22px' />
+                            <Text>Jobs</Text>
+                        </HStack>
+                    </Text>
 
                     {/* Home Icon */}
                     <Text onClick={() => handleNavigate('')}><IoHomeOutline size='22px' /></Text>

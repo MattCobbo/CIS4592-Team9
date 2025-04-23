@@ -3,7 +3,7 @@ from django.conf.urls.static import static
 from django.urls import path
 
 from .views import (
-    get_user_profile_data, CustomTokenObtainPairView, CustomTokenRefreshView,
+    apply_for_job, get_user_profile_data, CustomTokenObtainPairView, CustomTokenRefreshView, job_applications, job_detail, jobs, my_jobs,
     register, authenticated, toggleFollow, get_users_posts, toggleLike,
     create_post, get_posts, search_users, logout, update_user_details,
     create_organization, request_to_join_organization,
@@ -40,6 +40,11 @@ urlpatterns = [
     path('search_organizations/', search_organizations),
     path("organization/<int:org_id>/events/", EventListCreateView.as_view(), name="org-events",),
     path("events/<int:event_id>/rsvp/", RSVPUpdateView.as_view(), name="event-rsvp",),
+    path('jobs/', jobs, name='jobs'),
+    path('jobs/<int:job_id>/', job_detail, name='job-detail'),
+    path('jobs/<int:job_id>/apply/', apply_for_job, name='apply-for-job'),
+    path('my-jobs/', my_jobs, name='my-jobs'),
+    path('jobs/<int:job_id>/applications/', job_applications, name='job-applications'),
     ] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
 )

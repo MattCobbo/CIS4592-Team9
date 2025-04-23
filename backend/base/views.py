@@ -12,10 +12,12 @@ from rest_framework.response import Response
 from rest_framework.throttling import UserRateThrottle
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from .models import Event, EventAttendance, MyUser, Organization, Post, orgPost
+from .models import Event, EventAttendance, Job, JobApplication, MyUser, Organization, Post, orgPost
 from .serializers import (
     EventAttendanceSerializer,
     EventSerializer,
+    JobApplicationSerializer,
+    JobSerializer,
     MyUserProfileSerializer,
     OrganizationSerializer,
     OrgPostSerializer,
@@ -505,6 +507,132 @@ class IsOrgOwner(permissions.BasePermission):
         except Organization.DoesNotExist:
             return False
         return org.owner == request.user
+    
+
+# Add these view functions to your existing views.py file
+
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
+def jobs(request):
+    """
+    GET - Retrieve all job postings
+    POST - Create a new job posting
+    """
+    if request.method == 'GET':
+        # Get all jobs, ordered by newest first
+        all_jobs = Job.objects.all().order_by('-post_date')
+        
+        # Use pagination for potentially large job lists
+        paginator = PageNumberPagination()
+        paginator.page_size = 10
+        result_page = paginator.paginate_queryset(all_jobs, request)
+        
+        serializer = JobSerializer(result_page, many=True)
+        return paginator.get_paginated_response(serializer.data)
+    
+    elif request.method == 'POST':
+        # Create a new job posting
+        serializer = JobSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(creator=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET', 'DELETE'])
+@permission_classes([IsAuthenticated])
+def job_detail(request, job_id):
+    """
+    GET - Retrieve a specific job
+    DELETE - Delete a job (creator only)
+    """
+    try:
+        job = Job.objects.get(id=job_id)
+    except Job.DoesNotExist:
+        return Response({"error": "Job not found"}, status=status.HTTP_404_NOT_FOUND)
+    
+    if request.method == 'GET':
+        serializer = JobSerializer(job)
+        return Response(serializer.data)
+    
+    elif request.method == 'DELETE':
+        # Only the creator can delete a job
+        if request.user != job.creator:
+            return Response({"error": "Not authorized to delete this job"}, 
+                           status=status.HTTP_403_FORBIDDEN)
+        
+        job.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def apply_for_job(request, job_id):
+    """Submit an application for a specific job."""
+    try:
+        # Print debugging information
+        print(f"Received job application for job_id: {job_id}")
+        print(f"Request data: {request.data}")
+        
+        # Get the job
+        try:
+            job = Job.objects.get(id=job_id)
+        except Job.DoesNotExist:
+            return Response({"error": "Job not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        # Create the application with explicit field mapping to avoid any issues
+        application_data = {
+            'applicant_name': request.data.get('applicant_name', ''),
+            'applicant_email': request.data.get('applicant_email', ''),
+            'applicant_phone': request.data.get('applicant_phone', ''),
+            'requested_pay': request.data.get('requested_pay', ''),
+            'resume_text': request.data.get('resume_text', '')
+        }
+        
+        # Validate the data
+        serializer = JobApplicationSerializer(data=application_data)
+        if serializer.is_valid():
+            # Save the application with the job instance
+            serializer.save(job=job)
+            
+            # Additional logic could be added here for notifications to the job creator
+            print(f"Application created successfully: {serializer.data}")
+            
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
+        # If validation fails, print the errors and return them
+        print(f"Validation errors: {serializer.errors}")
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    except Exception as e:
+        # Catch any other errors that might occur
+        print(f"Error in apply_for_job: {str(e)}")
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def my_jobs(request):
+    """Get all jobs created by the current user."""
+    jobs = Job.objects.filter(creator=request.user).order_by('-post_date')
+    serializer = JobSerializer(jobs, many=True)
+    return Response(serializer.data)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def job_applications(request, job_id):
+    """Get all applications for a specific job (accessible only to job creator)."""
+    try:
+        job = Job.objects.get(id=job_id)
+    except Job.DoesNotExist:
+        return Response({"error": "Job not found"}, status=status.HTTP_404_NOT_FOUND)
+    
+    # Check if user is the job creator
+    if request.user != job.creator:
+        return Response({"error": "Not authorized to view these applications"}, 
+                       status=status.HTTP_403_FORBIDDEN)
+    
+    applications = JobApplication.objects.filter(job=job).order_by('-application_date')
+    serializer = JobApplicationSerializer(applications, many=True)
+    return Response(serializer.data)
+
 
 class EventListCreateView(generics.ListCreateAPIView):
     """

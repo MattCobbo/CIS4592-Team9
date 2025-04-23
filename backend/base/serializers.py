@@ -1,6 +1,15 @@
 from rest_framework import serializers
 
-from .models import MyUser, Post, Organization, orgPost, Event, EventAttendance
+from .models import (
+    Event,
+    EventAttendance,
+    Job,
+    JobApplication,
+    MyUser,
+    Organization,
+    Post,
+    orgPost,
+)
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):
@@ -147,3 +156,34 @@ class EventSerializer(serializers.ModelSerializer):
             "creator_username",
             "attendance",
         ]
+
+
+class JobSerializer(serializers.ModelSerializer):
+    creator_username = serializers.ReadOnlyField(source='creator.username')
+    formatted_post_date = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Job
+        fields = ['id', 'creator_username', 'title', 'description', 'pay', 
+                 'post_date', 'formatted_post_date']
+    
+    def get_formatted_post_date(self, obj):
+        return obj.post_date.strftime("%d %b %y")
+
+class JobApplicationSerializer(serializers.ModelSerializer):
+    job_title = serializers.ReadOnlyField(source='job.title')
+    job_creator = serializers.ReadOnlyField(source='job.creator.username')
+    formatted_application_date = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = JobApplication
+        fields = [
+            'id', 'job', 'job_title', 'job_creator', 
+            'applicant_name', 'applicant_email', 'applicant_phone', 
+            'requested_pay', 'resume_text', 'application_date', 
+            'formatted_application_date'
+        ]
+        read_only_fields = ['id', 'job', 'job_title', 'job_creator', 'application_date', 'formatted_application_date']
+    
+    def get_formatted_application_date(self, obj):
+        return obj.application_date.strftime("%d %b %y")
