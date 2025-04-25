@@ -1,4 +1,5 @@
 from rest_framework import serializers
+import re  
 
 from .models import (
     Event,
@@ -36,6 +37,27 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         user.set_password(validated_data["password"])  # stores safely
         user.save()
         return user
+    
+    def validate_password(self, value):
+        """
+        Check password complexity requirements.
+        """
+        if len(value) < 8:
+            raise serializers.ValidationError("Password must be at least 8 characters.")
+        
+        if not re.search(r'[A-Z]', value):
+            raise serializers.ValidationError("Password must contain an uppercase letter.")
+            
+        if not re.search(r'[a-z]', value):
+            raise serializers.ValidationError("Password must contain a lowercase letter.")
+            
+        if not re.search(r'[0-9]', value):
+            raise serializers.ValidationError("Password must contain a number.")
+            
+        if not re.search(r'[!@#$%^&*()_+\-=\[\]{};\':"\\|,.<>\/?]', value):
+            raise serializers.ValidationError("Password must contain a special character.")
+            
+        return value
 
 
 class MyUserProfileSerializer(serializers.ModelSerializer):
@@ -75,7 +97,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'name', 'bio', 'profile_image', 'created_at',
             'owner_username', 'members', 'pending_requests',
-            'member_count', 'is_owner'
+            'member_count', 'is_owner', 'discord_server', 'discord_channel'  # Added Discord fields
         ]
 
     def get_member_count(self, obj):

@@ -371,6 +371,13 @@ def update_organization(request, org_id):
         
         if "bio" in request.data:
             org.bio = request.data["bio"]
+            
+        # Discord fields
+        if "discord_server" in request.data:
+            org.discord_server = request.data["discord_server"]
+            
+        if "discord_channel" in request.data:
+            org.discord_channel = request.data["discord_channel"]
         
         if request.FILES.get("profile_image"):
             # Delete old image if exists
@@ -734,3 +741,10 @@ class RSVPUpdateView(generics.UpdateAPIView):
             {"success": True, "new_rsvp": rsvp_val},
             status=status.HTTP_200_OK,
         )
+@api_view(["GET"])
+@permission_classes([permissions.AllowAny])  
+def check_username(request):
+    username = request.GET.get('username', '')
+    exists = MyUser.objects.filter(username=username).exists()
+    
+    return Response({'available': not exists})
