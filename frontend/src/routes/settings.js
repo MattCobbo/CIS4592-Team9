@@ -15,20 +15,20 @@ const Settings = () => {
     const [profileImage, setProfileImage] = useState(storage ? storage.profile_image : '')
 
     const nav = useNavigate();
-    
+
     const handleLogout = async () => {
         try {
             await logout();
             nav('/login')
         } catch {
-            alert ('error logging out')
+            alert('error logging out')
         }
     }
 
     const handleUpdate = async () => {
         try {
-            await update_user({"username":username, "profile_image":profileImage, "email":email, "first_name":firstName, "last_name":lastName, "bio":bio})
-            localStorage.setItem("userData", JSON.stringify({"username":username, "email":email, "first_name":firstName, "last_name":lastName, "bio":bio}))
+            await update_user({ "username": username, "profile_image": profileImage, "email": email, "first_name": firstName, "last_name": lastName, "bio": bio })
+            localStorage.setItem("userData", JSON.stringify({ "username": username, "email": email, "first_name": firstName, "last_name": lastName, "bio": bio }))
             alert("successfully updated")
             nav(`/${username}`)
         } catch {
@@ -42,7 +42,7 @@ const Settings = () => {
                 <Heading>Settings</Heading>
                 <FormControl>
                     <FormLabel>Profile Picture</FormLabel>
-                    <Input onChange={(e) => setProfileImage(e.target.files[0])} bg='white' type='file' alignContent={'center'}/>
+                    <Input onChange={(e) => setProfileImage(e.target.files[0])} bg='white' type='file' alignContent={'center'} />
                 </FormControl>
                 <FormControl>
                     <FormLabel>Username</FormLabel>

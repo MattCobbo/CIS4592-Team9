@@ -1,17 +1,19 @@
 import { useState, useEffect } from "react";
-import { 
-  Button, 
-  Flex, 
-  FormControl, 
-  FormLabel, 
-  Heading, 
-  Input, 
-  Textarea, 
+import {
+  Button,
+  Flex,
+  FormControl,
+  FormLabel,
+  Heading,
+  Input,
+  Textarea,
   VStack,
   useToast,
   Box,
   Image,
-  Spinner
+  Spinner,
+  Divider,
+  Text
 } from "@chakra-ui/react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getOrganization, updateOrganization } from "../api/endpoints";
@@ -26,7 +28,9 @@ const EditOrganization = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
-  
+  const [discordServer, setDiscordServer] = useState("");
+  const [discordChannel, setDiscordChannel] = useState("");
+
   const toast = useToast();
   const navigate = useNavigate();
 
@@ -36,16 +40,18 @@ const EditOrganization = () => {
       try {
         setLoading(true);
         const data = await getOrganization(orgId);
-        
+
         // Check if the current user is the owner
         if (!data.is_owner) {
           setError("You don't have permission to edit this organization");
           return;
         }
-        
+
         setName(data.name);
         setBio(data.bio);
         setCurrentImage(data.profile_image);
+        setDiscordServer(data.discord_server || "");
+        setDiscordChannel(data.discord_channel || "");
       } catch (err) {
         console.error("Error fetching organization:", err);
         setError("Could not load organization data");
@@ -53,7 +59,7 @@ const EditOrganization = () => {
         setLoading(false);
       }
     };
-    
+
     fetchOrganization();
   }, [orgId]);
 
@@ -71,19 +77,21 @@ const EditOrganization = () => {
 
     try {
       setSaving(true);
-      
+
       // Create FormData to handle file upload
       const formData = new FormData();
       formData.append("name", name);
       formData.append("bio", bio);
-      
+      formData.append("discord_server", discordServer);
+      formData.append("discord_channel", discordChannel);
+
       // Only append the image if a new one was selected
       if (profileImage) {
         formData.append("profile_image", profileImage);
       }
-      
+
       await updateOrganization(orgId, formData);
-      
+
       toast({
         title: "Organization updated",
         description: "Your changes have been saved",
@@ -91,7 +99,7 @@ const EditOrganization = () => {
         duration: 3000,
         isClosable: true,
       });
-      
+
       // Navigate back to organization profile
       navigate(`/organization/${orgId}`);
     } catch (err) {
@@ -134,10 +142,10 @@ const EditOrganization = () => {
   }
 
   return (
-    <Flex w="100%" h="calc(100vh - 90px)" justifyContent="center" alignItems="center">
+    <Flex w="100%" h="calc(100vh - 90px)" justifyContent="center" alignItems="center" py={8} overflowY="auto">
       <VStack alignItems="start" w="95%" maxW="500px" gap="30px" p={6} borderWidth={1} borderRadius="lg" bg="white" boxShadow="md">
         <Heading>Edit Organization</Heading>
-        
+
         <FormControl>
           <FormLabel>Organization Image</FormLabel>
           {currentImage && (
@@ -153,7 +161,7 @@ const EditOrganization = () => {
             accept="image/*"
           />
         </FormControl>
-        
+
         <FormControl isRequired>
           <FormLabel>Organization Name</FormLabel>
           <Input
@@ -163,7 +171,7 @@ const EditOrganization = () => {
             type="text"
           />
         </FormControl>
-        
+
         <FormControl>
           <FormLabel>Bio</FormLabel>
           <Textarea
@@ -174,7 +182,40 @@ const EditOrganization = () => {
             placeholder="Describe your organization"
           />
         </FormControl>
-        
+
+        <Divider my={2} />
+
+        <Box w="100%">
+          <Heading size="md" mb={4}>Discord Integration</Heading>
+          <Text fontSize="sm" color="gray.600" mb={3}>
+            Connect your organization to Discord to show a widget on your organization page.
+          </Text>
+
+          <FormControl mb={4}>
+            <FormLabel>Discord Server ID</FormLabel>
+            <Input
+              value={discordServer}
+              onChange={(e) => setDiscordServer(e.target.value)}
+              placeholder="e.g. 1234567890123456789"
+              bg="white"
+            />
+          </FormControl>
+
+          <FormControl>
+            <FormLabel>Discord Channel ID</FormLabel>
+            <Input
+              value={discordChannel}
+              onChange={(e) => setDiscordChannel(e.target.value)}
+              placeholder="e.g. 1234567890123456789"
+              bg="white"
+            />
+            <Text fontSize="xs" color="gray.500" mt={1}>
+              To get these IDs, enable Developer Mode in Discord (Settings → Advanced),
+              then right-click on your server/channel and select "Copy ID"
+            </Text>
+          </FormControl>
+        </Box>
+
         <Flex w="100%" justifyContent="space-between" mt="20px">
           <Button
             onClick={handleCancel}
