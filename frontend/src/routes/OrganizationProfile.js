@@ -428,7 +428,7 @@ const CreateEvent = ({ orgId, setOrgPosts }) => {
 };
 
 const OrganizationDiscordWidget = ({ organization }) => {
-    // Check if Discord data exists in the organization object
+
     const hasDiscordSetup = organization?.discord_server && organization?.discord_channel;
 
     let errorMessage = "This organization hasn't set up Discord integration yet";

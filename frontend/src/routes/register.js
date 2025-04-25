@@ -147,8 +147,20 @@ const Register = () => {
     };
 
     return (
-        <Flex w='100%' h='calc(100vh - 90px)' justifyContent={'center'} alignItems={'center'}>
-            <VStack alignItems='start' w='95%' maxW='400px' gap='30px'>
+        <Flex
+            w='100%'
+            h='calc(100vh - 90px)'
+            justifyContent='center'
+            overflow="auto" // Make the container scrollable
+            py={4} // Add padding at top and bottom
+        >
+            <VStack
+                alignItems='start'
+                w='95%'
+                maxW='400px'
+                gap='20px' // Reduced gap slightly
+                my={4} // Add margin at top and bottom
+            >
                 <Heading>Register</Heading>
                 <FormControl isInvalid={!!errors.username}>
                     <FormLabel htmlFor='username'>Username</FormLabel>
@@ -204,9 +216,15 @@ const Register = () => {
                         <Text color="red.500" fontSize="sm">{errors.confirmPassword}</Text>
                     )}
                 </FormControl>
-                <VStack w='100%' alignItems={'start'}>
+                <VStack w='100%' alignItems='start'>
                     <Button onClick={handleRegister} w='40%' colorScheme="green" fontSize={'15px'}>Register</Button>
-                    <Text onClick={handleNav} textColor={'blue'}>Already have an Account?</Text>
+                    <Text
+                        onClick={handleNav}
+                        textColor='blue'
+                        cursor="pointer" // Add pointer cursor for better UX
+                    >
+                        Already have an Account?
+                    </Text>
                 </VStack>
             </VStack>
         </Flex>

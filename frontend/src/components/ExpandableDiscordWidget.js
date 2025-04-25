@@ -52,7 +52,7 @@ const ExpandableDiscordWidget = ({ serverId, channelId, errorMessage }) => {
         }
     }, [isExpanded, serverId, channelId]);
 
-    // Handle mouse events for dragging
+    // Handle mouse for dragging
     const handleMouseDown = (e) => {
         if (buttonRef.current) {
             setIsDragging(true);
@@ -77,7 +77,6 @@ const ExpandableDiscordWidget = ({ serverId, channelId, errorMessage }) => {
         setIsDragging(false);
     };
 
-    // Add and remove event listeners
     useEffect(() => {
         if (isDragging) {
             window.addEventListener('mousemove', handleMouseMove);
@@ -124,13 +123,13 @@ const ExpandableDiscordWidget = ({ serverId, channelId, errorMessage }) => {
 
         // Check right edge
         if (posX + WIDGET_WIDTH > window.innerWidth - SCREEN_PADDING) {
-            // If too close to right edge, position to the left of the button
+
             posX = Math.max(SCREEN_PADDING, position.x + BUTTON_SIZE - WIDGET_WIDTH);
         }
 
         // Check bottom edge
         if (posY + WIDGET_HEIGHT > window.innerHeight - SCREEN_PADDING) {
-            // If too close to bottom edge, position above the button
+
             posY = Math.max(SCREEN_PADDING, position.y - WIDGET_HEIGHT - 10);
         }
 
@@ -161,7 +160,6 @@ const ExpandableDiscordWidget = ({ serverId, channelId, errorMessage }) => {
                 <Icon as={FaDiscord} w={6} h={6} />
             </Button>
 
-            {/* Expanded Discord Widget - now with screen boundary awareness */}
             {isExpanded && (
                 <Box
                     ref={widgetRef}

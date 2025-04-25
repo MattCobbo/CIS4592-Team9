@@ -1,4 +1,4 @@
-import { Button, Flex, FormControl, FormLabel, Heading, Input, Textarea, VStack } from "@chakra-ui/react"
+import { Button, Flex, FormControl, FormLabel, Heading, Input, Textarea, VStack, HStack } from "@chakra-ui/react"
 import { useState } from "react"
 import { update_user, logout } from "../api/endpoints"
 import { useNavigate } from "react-router-dom"
@@ -37,8 +37,20 @@ const Settings = () => {
     }
 
     return (
-        <Flex w='100%' h='calc(100vh - 90px)' justifyContent={'center'} alignItems={'center'}>
-            <VStack alignItems='start' w='95%' maxW='400px' gap='30px'>
+        <Flex
+            w='100%'
+            h='calc(100vh - 90px)'
+            justifyContent='center'
+            overflow="auto"
+            py={4}
+        >
+            <VStack
+                alignItems='start'
+                w='95%'
+                maxW='400px'
+                gap='20px'
+                my={4}
+            >
                 <Heading>Settings</Heading>
                 <FormControl>
                     <FormLabel>Profile Picture</FormLabel>
@@ -64,8 +76,10 @@ const Settings = () => {
                     <FormLabel>Bio</FormLabel>
                     <Textarea onChange={(e) => setBio(e.target.value)} value={bio} bg='white' type='text' />
                 </FormControl>
-                <Button onClick={handleUpdate} w='40%' colorScheme="blue" fontSize={'15px'} mt='20px'>Save Changes</Button>
-                <Button onClick={handleLogout} colorScheme="red" fontSize={'15px'}>Logout</Button>
+                <HStack w='100%' justifyContent='space-between' mt='20px'>
+                    <Button onClick={handleUpdate} colorScheme="blue" fontSize={'15px'}>Save Changes</Button>
+                    <Button onClick={handleLogout} colorScheme="red" fontSize={'15px'}>Logout</Button>
+                </HStack>
             </VStack>
         </Flex>
     )

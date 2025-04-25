@@ -274,7 +274,6 @@ export const getJobApplications = async (jobId) => {
 export const check_username_availability = async (username) => {
     try {
         const response = await api.get(`/check-username/?username=${username}`);
-        // Remove console.log debug statement
         return response.data;
     } catch (error) {
         console.error("Error checking username availability:", error);
