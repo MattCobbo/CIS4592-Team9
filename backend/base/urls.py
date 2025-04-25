@@ -1,51 +1,43 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import path
-
-from .views import (
-    apply_for_job, get_user_profile_data, CustomTokenObtainPairView, CustomTokenRefreshView, job_applications, job_detail, jobs, my_jobs,
-    register, authenticated, toggleFollow, get_users_posts, toggleLike,
-    create_post, get_posts, search_users, logout, update_organization, update_user_details,
-    create_organization, request_to_join_organization,
-    accept_join_request, get_organization_posts, get_user_organizations,
-    get_organization_feed, get_organization, create_org_post, search_organizations,
-    EventListCreateView, RSVPUpdateView, IsOrgOwner
-)
+from . import views
 
 urlpatterns = [
-    path("user_data/<str:pk>/", get_user_profile_data),
-    path('token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('token/refresh/', CustomTokenRefreshView.as_view(), name='token-refresh'),
-    path('register/', register),
-    path('authenticated/', authenticated),
-    path('toggle_follow/', toggleFollow),
-    path('posts/<str:pk>/', get_users_posts),
-    path('toggleLike/', toggleLike),
-    path('create_post/', create_post),
-    path('get_posts/', get_posts),
-    path('search/', search_users),
-    path('update_user/', update_user_details),
-    path('logout/', logout),
-    path("organization/user/", get_user_organizations),
-    path("organization/feed/", get_organization_feed),
+    path("user_data/<str:pk>/", views.get_user_profile_data),
+    path('token/', views.CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('token/refresh/', views.CustomTokenRefreshView.as_view(), name='token-refresh'),
+    path('register/', views.register),
+    path('authenticated/', views.authenticated),
+    path('toggle_follow/', views.toggleFollow),
+    path('posts/<str:pk>/', views.get_users_posts),
+    path('toggleLike/', views.toggleLike),
+    path('create_post/', views.create_post),
+    path('get_posts/', views.get_posts),
+    path('search/', views.search_users),
+    path('update_user/', views.update_user_details),
+    path('logout/', views.logout),
+    path("organization/user/", views.get_user_organizations),
+    path("organization/feed/", views.get_organization_feed),
 
     # Organization Routes
-    path("organization/create/", create_organization),
-    path("organization/join/<int:org_id>/", request_to_join_organization),
-    path("organization/accept/<int:org_id>/<str:user_id>/", accept_join_request),
-    path("organization/posts/<int:org_id>/", get_organization_posts),
-    path("organization/<int:org_id>/", get_organization),
-    path("organization/<int:org_id>/update/", update_organization),
-    path("create_org_post/", create_org_post),
-    path('login/', CustomTokenObtainPairView.as_view(), name='login'),
-    path('search_organizations/', search_organizations),
-    path("organization/<int:org_id>/events/", EventListCreateView.as_view(), name="org-events",),
-    path("events/<int:event_id>/rsvp/", RSVPUpdateView.as_view(), name="event-rsvp",),
-    path('jobs/', jobs, name='jobs'),
-    path('jobs/<int:job_id>/', job_detail, name='job-detail'),
-    path('jobs/<int:job_id>/apply/', apply_for_job, name='apply-for-job'),
-    path('my-jobs/', my_jobs, name='my-jobs'),
-    path('jobs/<int:job_id>/applications/', job_applications, name='job-applications'),
-    ] + static(
+    path("organization/create/", views.create_organization),
+    path("organization/join/<int:org_id>/", views.request_to_join_organization),
+    path("organization/accept/<int:org_id>/<str:user_id>/", views.accept_join_request),
+    path("organization/posts/<int:org_id>/", views.get_organization_posts),
+    path("organization/<int:org_id>/", views.get_organization),
+    path("organization/<int:org_id>/update/", views.update_organization),
+    path("create_org_post/", views.create_org_post),
+    path('login/', views.CustomTokenObtainPairView.as_view(), name='login'),
+    path('search_organizations/', views.search_organizations),
+    path("organization/<int:org_id>/events/", views.EventListCreateView.as_view(), name="org-events",),
+    path("events/<int:event_id>/rsvp/", views.RSVPUpdateView.as_view(), name="event-rsvp",),
+    path('jobs/', views.jobs, name='jobs'),
+    path('jobs/<int:job_id>/', views.job_detail, name='job-detail'),
+    path('jobs/<int:job_id>/apply/', views.apply_for_job, name='apply-for-job'),
+    path('my-jobs/', views.my_jobs, name='my-jobs'),
+    path('jobs/<int:job_id>/applications/', views.job_applications, name='job-applications'),
+    path('check-username/', views.check_username, name='check-username'),
+] + static(
     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
 )

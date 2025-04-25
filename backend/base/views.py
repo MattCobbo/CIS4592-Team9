@@ -741,3 +741,12 @@ class RSVPUpdateView(generics.UpdateAPIView):
             {"success": True, "new_rsvp": rsvp_val},
             status=status.HTTP_200_OK,
         )
+@api_view(["GET"])
+@permission_classes([permissions.AllowAny])  
+def check_username(request):
+    username = request.GET.get('username', '')
+    print(f"Checking username: {username}")  # Debug log
+    exists = MyUser.objects.filter(username=username).exists()
+    print(f"Username exists: {exists}")  # Debug log
+    
+    return Response({'available': not exists})
