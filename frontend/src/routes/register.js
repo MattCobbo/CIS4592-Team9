@@ -75,26 +75,10 @@ const Register = () => {
         if (!username) return;
 
         try {
-            console.log("Checking username:", username);
+            const response = await check_username_availability(username);
 
-            const response = await fetch(`http://127.0.0.1:8000/api/check-username/?username=${username}`, {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json',
-                },
-            });
-
-            if (!response.ok) {
-                console.error("API Error:", response.status);
-                return;
-            }
-
-            const data = await response.json();
-            console.log("Username check response:", data);
-
-            if (!data.available) {
+            if (!response.available) {
                 setErrors(prev => ({ ...prev, username: "Username already exists. Please choose a different one." }));
-                document.getElementById('username-error').style.display = 'block';
             } else {
                 setErrors(prev => {
                     const newErrors = { ...prev };

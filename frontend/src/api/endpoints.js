@@ -19,17 +19,53 @@ api.interceptors.response.use(
     async error => {
         const original_request = error.config
 
-
+        // Only handle 401 unauthorized errors for refresh
         if (error.response?.status === 401 && !original_request._retry) {
-            if (original_request.url === '/token/refresh/') {
-                console.log("Refresh token invalid or expired, redirecting to login");
-                window.location.href = '/login';
+            original_request._retry = true;
+
+            // Check if we're within cooldown period
+            const now = Date.now();
+            if (now - lastRefreshTime < REFRESH_COOLDOWN) {
+                console.log("Token refresh on cooldown, skipping");
                 return Promise.reject(error);
             }
 
-            original_request._retry = true;
+            // Check if already refreshing
+            if (isRefreshing) {
+                console.log("Already refreshing token, skipping duplicate attempt");
+                return Promise.reject(error);
+            }
 
-            // Rest of your existing code...
+            try {
+                isRefreshing = true;
+                lastRefreshTime = now;
+
+                const response = await api.post('/token/refresh/');
+
+                if (response.data.success) {
+                    // Try original request again
+                    isRefreshing = false;
+                    return api(original_request);
+                } else {
+                    // Refresh failed
+                    isRefreshing = false;
+                    window.location.href = '/login';
+                    return Promise.reject(error);
+                }
+            } catch (refreshError) {
+                isRefreshing = false;
+
+                // Check for rate limiting (429)
+                if (refreshError.response?.status === 429) {
+                    console.log("Rate limited on token refresh, will retry later");
+                    return Promise.reject(error);
+                }
+
+                // Any other error during refresh should redirect to login
+                console.log("Failed to refresh token:", refreshError);
+                window.location.href = '/login';
+                return Promise.reject(refreshError);
+            }
         }
         return Promise.reject(error);
     }
@@ -232,7 +268,7 @@ export const getJobApplications = async (jobId) => {
 export const check_username_availability = async (username) => {
     try {
         const response = await api.get(`/check-username/?username=${username}`);
-        console.log("API response:", response.data); // Debug log
+        // Remove console.log debug statement
         return response.data;
     } catch (error) {
         console.error("Error checking username availability:", error);
