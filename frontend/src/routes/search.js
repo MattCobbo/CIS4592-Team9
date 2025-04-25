@@ -10,7 +10,7 @@ const Search = () => {
     const [organizations, setOrganizations] = useState([]);
     const [userOrgs, setUserOrgs] = useState([]);
     const [loading, setLoading] = useState(true);
-    
+
     const get_search_value_from_url = () => {
         const url_split = window.location.pathname.split('/search/');
         return url_split[url_split.length - 1];
@@ -73,14 +73,15 @@ const Search = () => {
                             <Text>Loading...</Text>
                         ) : organizations.length > 0 ? (
                             organizations.map((org) => (
-                                <Organization 
+                                <Organization
                                     key={org.id}
-                                    name={org.name} 
-                                    profile_image={org.profile_image} 
-                                    owner_username={org.owner_username} 
+                                    name={org.name}
+                                    profile_image={org.profile_image}
+                                    owner_username={org.owner_username}
                                     id={org.id}
                                     isMember={userOrgs.includes(org.id)}
                                     refetchOrgs={fetchUserOrganizations}
+                                    organization={org}
                                 />
                             ))
                         ) : (
@@ -97,12 +98,12 @@ const Search = () => {
                             <Text>Loading...</Text>
                         ) : users.length > 0 ? (
                             users.map((user) => (
-                                <UserProfile 
+                                <UserProfile
                                     key={user.username}
-                                    username={user.username} 
-                                    profile_image={user.profile_image} 
-                                    first_name={user.first_name} 
-                                    last_name={user.last_name} 
+                                    username={user.username}
+                                    profile_image={user.profile_image}
+                                    first_name={user.first_name}
+                                    last_name={user.last_name}
                                 />
                             ))
                         ) : (
@@ -135,11 +136,20 @@ const UserProfile = ({ username, profile_image, first_name, last_name }) => {
     )
 }
 
-const Organization = ({ name, profile_image, owner_username, id, isMember, refetchOrgs }) => {
+const Organization = ({ name, profile_image, owner_username, id, isMember, refetchOrgs, organization }) => {
     const nav = useNavigate();
     const toast = useToast();
     const [joining, setJoining] = useState(false);
     const [isLocalMember, setIsLocalMember] = useState(isMember);
+    const [hasPendingRequest, setHasPendingRequest] = useState(false);
+    const currentUsername = JSON.parse(localStorage.getItem('userData'))?.username || '';
+
+    useEffect(() => {
+        // Check if user has a pending request for this organization
+        if (organization && organization.pending_requests) {
+            setHasPendingRequest(organization.pending_requests.includes(currentUsername));
+        }
+    }, [organization]);
 
     const handleNav = () => {
         nav(`/organization/${id}`);
@@ -147,13 +157,13 @@ const Organization = ({ name, profile_image, owner_username, id, isMember, refet
 
     const handleJoin = async (e) => {
         e.stopPropagation(); // Prevent navigation when clicking the button
-        
+
         if (isLocalMember) return; // Already a member
-        
+
         setJoining(true);
         try {
             const response = await joinOrganization(id);
-            
+
             toast({
                 title: "Success",
                 description: "Your request to join this organization has been sent",
@@ -161,19 +171,19 @@ const Organization = ({ name, profile_image, owner_username, id, isMember, refet
                 duration: 3000,
                 isClosable: true,
             });
-            
+
             // Update local state
             setIsLocalMember(true);
-            
+
             // Refetch user's organizations to update the parent component's state
             if (refetchOrgs) refetchOrgs();
-            
+
         } catch (error) {
             console.error("Join error:", error);
-            
+
             // Show the specific error message if available
             const errorMessage = error.response?.data?.error || "Could not process your join request";
-            
+
             toast({
                 title: "Error",
                 description: errorMessage,
@@ -197,11 +207,11 @@ const Organization = ({ name, profile_image, owner_username, id, isMember, refet
                     <Text fontSize={'12px'}>Owner: {owner_username}</Text>
                 </VStack>
             </Flex>
-            
-            {!isLocalMember && (
-                <Button 
-                    onClick={handleJoin} 
-                    colorScheme="blue" 
+
+            {!isLocalMember && !hasPendingRequest && (
+                <Button
+                    onClick={handleJoin}
+                    colorScheme="blue"
                     size="sm"
                     isLoading={joining}
                     loadingText="Joining"
@@ -209,11 +219,21 @@ const Organization = ({ name, profile_image, owner_username, id, isMember, refet
                     Join
                 </Button>
             )}
-            
+
+            {!isLocalMember && hasPendingRequest && (
+                <Button
+                    colorScheme="yellow"
+                    size="sm"
+                    isDisabled={true}
+                >
+                    Pending
+                </Button>
+            )}
+
             {isLocalMember && (
-                <Button 
-                    colorScheme="green" 
-                    size="sm" 
+                <Button
+                    colorScheme="green"
+                    size="sm"
                     variant="outline"
                     onClick={handleNav}
                 >
