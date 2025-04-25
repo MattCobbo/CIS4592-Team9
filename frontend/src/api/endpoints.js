@@ -139,8 +139,14 @@ export const update_user = async (values) => {
 // Organization API Calls
 
 export const createOrganization = async (name, bio) => {
-    const response = await api.post('/organization/create/', { name, bio });
-    return response.data;
+    try {
+        const response = await api.post('/organization/create/', { name, bio });
+        return response.data;
+    } catch (error) {
+        const errorMessage = error.response?.data?.error || "Failed to create organization";
+        console.error("Organization creation error:", errorMessage);
+        throw new Error(errorMessage);
+    }
 };
 
 export const updateOrganization = async (orgId, formData) => {

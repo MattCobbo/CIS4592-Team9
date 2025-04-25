@@ -24,6 +24,8 @@ class Organization(models.Model):
     owner = models.ForeignKey(MyUser, on_delete=models.CASCADE, related_name='owned_organizations')
     members = models.ManyToManyField(MyUser, related_name='joined_organizations', blank=True)
     pending_requests = models.ManyToManyField(MyUser, related_name='organization_requests', blank=True)
+    discord_server = models.CharField(max_length=100, blank=True, null=True)
+    discord_channel = models.CharField(max_length=100, blank=True, null=True)
 
     def __str__(self):
         return self.name
