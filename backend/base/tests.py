@@ -6,9 +6,10 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from .models import MyUser, Post, Organization, orgPost
+from .models import MyUser, Post, Organization, orgPost,Event, EventAttendance, Job, JobApplication
 
-
+from django.utils import timezone        
+from django.db import IntegrityError 
 from rest_framework.test import APITestCase
 from rest_framework import status
 from django.urls import reverse
@@ -188,6 +189,143 @@ class OrgPostModelTest(TestCase):
         )
         self.org_post.likes.add(other_user)
         self.assertIn(other_user, self.org_post.likes.all())
+
+class EventModelTest(TestCase):
+    """Validate creation and basic behaviour of the Event model."""
+
+    def setUp(self):
+        # One organisation with a single owner who will also be the event creator
+        self.owner = MyUser.objects.create_user(
+            username="event_owner", password="password123"
+        )
+        self.org = Organization.objects.create(
+            name="Events-R-Us", bio="We host stuff", owner=self.owner
+        )
+
+        self.event = Event.objects.create(
+            organization=self.org,
+            creator=self.owner,
+            title="Hack-Night",
+            description="All-night coding session",
+            starts_at=timezone.now() + timezone.timedelta(days=1),
+        )
+
+    def test_event_creation(self):
+        """Ensure the event stores every supplied field correctly."""
+        self.assertEqual(self.event.organization, self.org)
+        self.assertEqual(self.event.creator, self.owner)
+        self.assertEqual(self.event.title, "Hack-Night")
+        self.assertGreater(self.event.starts_at, timezone.now())
+        # created_at is auto populated
+        self.assertIsNotNone(self.event.created_at)
+
+    def test_event_str(self):
+        """__str__ should match the formatted title and date."""
+        expected_prefix = "Hack-Night on "
+        self.assertTrue(str(self.event).startswith(expected_prefix))
+
+
+class EventAttendanceModelTest(TestCase):
+    """Verify Many-to-Many through table and unique_together constraint."""
+
+    def setUp(self):
+        # Users
+        self.u1 = MyUser.objects.create_user(username="alice", password="pw")
+        self.u2 = MyUser.objects.create_user(username="bob", password="pw")
+
+        # Org + event
+        self.org = Organization.objects.create(
+            name="Chess-Club", bio="For fun", owner=self.u1
+        )
+        self.event = Event.objects.create(
+            organization=self.org,
+            creator=self.u1,
+            title="Spring Tournament",
+            starts_at=timezone.now() + timezone.timedelta(days=7),
+        )
+
+    def test_single_attendance_row(self):
+        """A user can RSVP exactly once; the through table row should reflect it."""
+        attend = EventAttendance.objects.create(
+            event=self.event, user=self.u2, rsvp=Event.RSVP.YES
+        )
+
+        # The reverse relation on Event should expose the attendee
+        self.assertIn(self.u2, self.event.attendees.all())
+        # And the reverse relation on User should expose the event
+        self.assertIn(self.event, self.u2.event_responses.all())
+        # Field value persists
+        self.assertEqual(attend.rsvp, Event.RSVP.YES)
+
+    def test_unique_together_enforced(self):
+        """A duplicate RSVP by the same user for the same event must raise an error."""
+        EventAttendance.objects.create(
+            event=self.event, user=self.u2, rsvp=Event.RSVP.YES
+        )
+        with self.assertRaises(IntegrityError):
+            EventAttendance.objects.create(
+                event=self.event, user=self.u2, rsvp=Event.RSVP.NO
+            )
+
+
+# ------------------------------------------------------------
+#  Job-related tests
+# ------------------------------------------------------------
+class JobModelTest(TestCase):
+    """Cover Job creation and its __str__ helper."""
+
+    def setUp(self):
+        self.poster = MyUser.objects.create_user(username="recruiter", password="pw")
+        self.job = Job.objects.create(
+            creator=self.poster,
+            title="Junior Backend Developer",
+            description="Build APIs in Django",
+            pay="$60-70k",
+        )
+
+    def test_job_creation(self):
+        """Fields should persist and the post date auto-populates."""
+        self.assertEqual(self.job.creator, self.poster)
+        self.assertEqual(self.job.title, "Junior Backend Developer")
+        self.assertEqual(self.job.pay, "$60-70k")
+        self.assertIsNotNone(self.job.post_date)
+
+    def test_job_str(self):
+        """Readable string includes title and creator username."""
+        expected = "Junior Backend Developer posted by recruiter"
+        self.assertEqual(str(self.job), expected)
+
+
+class JobApplicationModelTest(TestCase):
+    """Ensure JobApplication instances link correctly to a Job and stringify nicely."""
+
+    def setUp(self):
+        self.poster = MyUser.objects.create_user(username="hr_manager", password="pw")
+        self.job = Job.objects.create(
+            creator=self.poster,
+            title="DevOps Engineer",
+            description="Keep CI/CD humming",
+            pay="$90-110k",
+        )
+        self.app = JobApplication.objects.create(
+            job=self.job,
+            applicant_name="Charlie Day",
+            applicant_email="charlie@example.com",
+            applicant_phone="555-1234",
+            requested_pay="$95k",
+            resume_text="Linux, Kubernetes, Jenkins",
+        )
+
+    def test_application_creation(self):
+        """Model should store all provided data and back-reference the parent job."""
+        self.assertEqual(self.app.job, self.job)
+        self.assertEqual(self.app.applicant_name, "Charlie Day")
+        self.assertIsNotNone(self.app.application_date)
+
+    def test_application_str(self):
+        """__str__ returns an informative summary line."""
+        expected = "Application from Charlie Day for DevOps Engineer"
+        self.assertEqual(str(self.app), expected)
 
 class LoginThrottleTest(APITestCase):
     def setUp(self):
