@@ -7,6 +7,8 @@ Social Networking platform - Capstone Repository for Team 9
 # Dev Build - Backend DRF - MUST USE Django Virtual Environment
 - Initialize virtual environment first in outer folder using ${pip -m venv venv}
 - then launch virtual environment ${.\venv\Scripts\activate}
+- Install required packages: ${pip install -r requirements.txt}
+- For Argon2 password hashing: ${pip install argon2-cffi}
 - Change directory to backend folder ${cd .\backend\} 
 - Run DRF server with ${py manage.py runserver}
 
