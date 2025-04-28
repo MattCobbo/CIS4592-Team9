@@ -1,19 +1,22 @@
 # CIS4592-Team9
 Social Networking platform - Capstone Repository for Team 9
 
-# Sprint 2 Deliverables
-- Recording link :: https://drive.google.com/file/d/1BeO43CNx0qrEPNe_5tcndLyF72eify_S/view?usp=sharing
+# Sprint 3 Deliverables
 
 # Dev Build - Backend DRF - MUST USE Django Virtual Environment
 - Initialize virtual environment first in outer folder using ${pip -m venv venv}
 - then launch virtual environment ${.\venv\Scripts\activate}
-- Change directory to backend folder ${cd .\backend\} 
+- Change directory to backend folder ${cd .\backend\}
+- Initialize Backend database ${python manage.py makemigrations}
+- Migrate Models into database ${python manage.py migrate}
+- Start with superadmin for backend access and to have starter account for frontend ${python create superuser}
 - Run DRF server with ${py manage.py runserver}
 
 # Frontend
 - Open second terminal
-- Change to frontend folder ${cd .\frontend\}
+- Change to frontend folder ${cd .\frontend}
 - Launch React script for local browser ${npm start build}
+- Sign in to website with superadmin from backend
 
 # DRF Admin Panel
 Use admin credentials - (Username:admin, Password:admin)
