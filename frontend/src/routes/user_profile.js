@@ -1,5 +1,5 @@
 import { Flex, Text, VStack, Box, Heading, HStack, Image, Button, Spacer } from "@chakra-ui/react"
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import { get_user_profile_data, toggleFollow, get_users_posts, create_post } from "../api/endpoints";
 import { SERVER_URL } from "../constants/constants";
@@ -20,31 +20,19 @@ const UserProfile = () => {
     }, [])
 
     return (
-        <Flex w='100%' justifyContent='center'>
-            <VStack w='75%'>
+        <Flex w='100%' justifyContent={'center'}>
+            <VStack w='90%' gap='20px'>
                 <Box w='100%' mt='40px'>
-                    <UserDetails username={username} />
+                    <UserDetails username={username}></UserDetails>
                 </Box>
+
                 <Box w='100%' mt='40px'>
                     <CreatePost username={username}></CreatePost>
                 </Box>
 
-
-                <HStack
-                    w="100%"
-                    spacing="40px"
-                    alignItems="flex-start"
-                    justifyContent="center"
-                >
-                    <Box w="100%" maxW="640px">
-                        <UserPosts username={username} />
-                    </Box>
-
-                    <Box w="100%" maxW="640px">
-                        <DiscordWidget />
-                    </Box>
-                </HStack>
-
+                <Box w="100%" maxW="640px">
+                    <UserPosts username={username} />
+                </Box>
             </VStack>
         </Flex>
     )
@@ -209,49 +197,5 @@ const UserPosts = ({ username }) => {
         </Flex>
     )
 }
-
-const DiscordWidget = () => {
-    const containerRef = useRef(null);
-
-    useEffect(() => {
-        if (!containerRef.current) return;
-
-        // No children !
-        containerRef.current.innerHTML = "";
-
-        // Create WidgetBot 
-        const widget = document.createElement("widgetbot");
-        widget.setAttribute("server", "1328070588882882580");
-        widget.setAttribute("channel", "1328070588882882587");
-        widget.setAttribute("width", "100%");
-        widget.setAttribute("height", "100%");
-
-        // Create script 
-        const script = document.createElement("script");
-        script.src = "https://cdn.jsdelivr.net/npm/@widgetbot/html-embed";
-        script.async = true;
-
-        // Append to container
-        containerRef.current.appendChild(widget);
-        containerRef.current.appendChild(script);
-    }, []);
-
-    return (
-        <Box
-            ref={containerRef}
-            w="100%"
-            maxW="640px"
-            h="600px"
-            borderRadius="lg"
-            overflow="hidden"
-            border="1px solid"
-            borderColor="gray.200"
-            boxShadow="md"
-            bg="white"
-        />
-    );
-};
-
-
 
 export default UserProfile;

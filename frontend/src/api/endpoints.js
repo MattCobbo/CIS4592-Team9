@@ -139,15 +139,29 @@ export const update_user = async (values) => {
 // Organization API Calls
 
 export const createOrganization = async (name, bio) => {
-    const response = await api.post('/organization/create/', { name, bio });
-    return response.data;
+    try {
+        const response = await api.post('/organization/create/', { name, bio });
+        return response.data;
+    } catch (error) {
+        const errorMessage = error.response?.data?.error || "Failed to create organization";
+        console.error("Organization creation error:", errorMessage);
+        throw new Error(errorMessage);
+    }
 };
 
 export const updateOrganization = async (orgId, formData) => {
-    const response = await api.patch(`/organization/${orgId}/update/`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+    const response = await fetch(`${SERVER_URL}/organization/${orgId}/update/`, {
+        method: 'PATCH',
+        credentials: 'include',
+        body: formData
     });
-    return response.data;
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to update organization');
+    }
+
+    return await response.json();
 };
 
 export const getOrganizations = async () => {
@@ -255,4 +269,14 @@ export const applyForJob = async (jobId, applicationData) => {
 export const getJobApplications = async (jobId) => {
     const response = await api.get(`/jobs/${jobId}/applications/`);
     return response.data;
+};
+
+export const check_username_availability = async (username) => {
+    try {
+        const response = await api.get(`/check-username/?username=${username}`);
+        return response.data;
+    } catch (error) {
+        console.error("Error checking username availability:", error);
+        throw error;
+    }
 };

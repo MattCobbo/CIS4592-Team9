@@ -8,6 +8,9 @@ import { SERVER_URL } from "../constants/constants";
 import Post from "../components/post";
 import PendingRequests from "../components/PendingRequests";
 
+// Update imports to include the new component
+import ExpandableDiscordWidget from "../components/ExpandableDiscordWidget";
+
 const OrganizationProfile = () => {
     const { orgId } = useParams();
     const [organization, setOrganization] = useState(null);
@@ -56,7 +59,7 @@ const OrganizationProfile = () => {
 
     return (
         <Flex w="100%" justifyContent="center">
-            {/* 🔄 TWO‑COLUMN LAYOUT: posts (left) | events (right) */}
+            {/* TWO‑COLUMN LAYOUT: posts (left) | events (right) */}
             <HStack w="90%" alignItems="flex-start" spacing="60px">
                 <VStack w="55%">
                     <Box w="100%" mt="40px">
@@ -80,26 +83,26 @@ const OrganizationProfile = () => {
                         />
                     </Box>
 
-                    {organization.is_owner && (<Box w="100%">
-                        <CreateEvent orgId={orgId} />
-                    </Box>
+                    {organization.is_owner && (
+                        <Box w="100%">
+                            <CreateEvent orgId={orgId} />
+                        </Box>
                     )}
 
+                    {/* Place the Discord widget in a proper location */}
+                    <Box w="100%" mt="40px">
+                        <OrganizationDiscordWidget organization={organization} />
+                    </Box>
 
                     <HStack w="100%" spacing="40px" alignItems="flex-start" justifyContent="center" mt="40px">
                         <Box w="100%" maxW="640px">
                             <OrganizationPosts posts={posts} />
                         </Box>
-
-                        {/* Discord Widget */}
-                        <Box w="100%" maxW="640px">
-                            <OrganizationDiscordWidget />
-                        </Box>
                     </HStack>
                 </VStack>
 
                 <VStack w="45%" alignItems="flex-start" spacing="30px" mt="40px">
-                    <Heading size="lg">Upcoming Events</Heading>
+                    <Heading size="lg">Upcoming Events</Heading>
                     <Divider />
                     <OrganizationEvents events={events} />
                 </VStack>
@@ -180,8 +183,8 @@ const OrganizationDetails = ({ organization }) => {
                     </VStack>
 
                     {organization.is_owner && (
-                        <Button 
-                            w="100%" 
+                        <Button
+                            w="100%"
                             colorScheme="blue"
                             onClick={() => navigate(`/organization/${organization.id}/edit`)}
                         >
@@ -424,41 +427,24 @@ const CreateEvent = ({ orgId, setOrgPosts }) => {
     );
 };
 
-const OrganizationDiscordWidget = () => {
-    const containerRef = useRef(null);
+const OrganizationDiscordWidget = ({ organization }) => {
 
-    useEffect(() => {
-        if (!containerRef.current) return;
+    const hasDiscordSetup = organization?.discord_server && organization?.discord_channel;
 
-        containerRef.current.innerHTML = "";
-
-        const widget = document.createElement("widgetbot");
-        widget.setAttribute("server", "1328070588882882580");
-        widget.setAttribute("channel", "1328070588882882587");
-        widget.setAttribute("width", "100%");
-        widget.setAttribute("height", "100%");
-
-        const script = document.createElement("script");
-        script.src = "https://cdn.jsdelivr.net/npm/@widgetbot/html-embed";
-        script.async = true;
-
-        containerRef.current.appendChild(widget);
-        containerRef.current.appendChild(script);
-    }, []);
+    let errorMessage = "This organization hasn't set up Discord integration yet";
+    if (organization?.is_owner) {
+        errorMessage = "Set up your Discord integration in the Edit Organization page";
+    }
 
     return (
-        <Box
-            ref={containerRef}
-            w="100%"
-            maxW="640px"
-            h="600px"
-            borderRadius="lg"
-            overflow="hidden"
-            border="1px solid"
-            borderColor="gray.200"
-            boxShadow="md"
-            bg="white"
-        />
+        <Box w="100%" mb={6}>
+            <Heading size="lg" mb={4}>Discord</Heading>
+            <ExpandableDiscordWidget
+                serverId={organization?.discord_server || ""}
+                channelId={organization?.discord_channel || ""}
+                errorMessage={errorMessage}
+            />
+        </Box>
     );
 };
 
