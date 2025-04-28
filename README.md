@@ -75,5 +75,6 @@ Context Tests:
 - useAuth: Tests authentication state, login process, and path-based auth checking
 
 # Documentation
-- [Testing Documentation](./documentation/test-coverage.txt)
-- [Security Documentation](./documentation/security-approach.txt)
+- [Testing Documentation](./documentation/test-coverage.md)
+- [Security Documentation](./documentation/security-approach.md)
+- [File Mapping](./documentation/project_file_map.md)
