@@ -2,8 +2,11 @@
 Social Networking platform - Capstone Repository for Team 9
 
 # Sprint 3 Deliverables
+Drive link to Video Project Deliverable showcase - https://drive.google.com/file/d/10cyVH4uAuIUlhhf-eKG9JGIbAmWbbTma/view?usp=sharing
+Drive link to Video Setup, Dependencies and Running the application - https://drive.google.com/file/d/1PqjpsDNoH9CcbYWoYr3eexGTKT83W01y/view?usp=sharing
+Drive link to Project Final Report - https://docs.google.com/document/d/1u7QXj_ONF7ZRfP73hM3sx4D2AFJOxKo9/edit?usp=sharing&ouid=111573379011479038745&rtpof=true&sd=true
 
-# Dev Build - Backend DRF - MUST USE Django Virtual Environment
+# SETUP REQUIREMENTS - Backend DRF - MUST USE Django Virtual Environment
 - Initialize virtual environment first in outer folder using ${pip -m venv venv}
 - then launch virtual environment ${.\venv\Scripts\activate}
 - Change directory to backend folder ${cd .\backend\}
@@ -32,6 +35,15 @@ These dependencies are required for the backend virtual environment
 - pip install django-cors-headers
 - pip install djangorestframework-simplejwt
 - pip install Pillow
+
+These dependencies are required for frontend React
+- npm install axios
+- npm install react-router-dom
+- npm install @chakra-ui/react@2.8
+- npm i react-icons
+- npm install react-scripts@latest
+- npm install --save-dev @testing-library/jest-dom
+- npm install --save-dev jest-environment-jsdom
 
 # Testing
 # Backend Testing
